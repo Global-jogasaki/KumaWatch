@@ -171,9 +171,35 @@ pip install pymc numPyro
 # Maps are self-contained HTML (no server required)
 ```
 
+### Prerequisite: pre-computed score files
+
+The benchmark notebook (`notebooks/kumawatch_benchmark.ipynb`) requires pre-computed ET and TTM daily scores for 2025. These are included in `data/scores/`:
+
+| File | Model |
+|------|-------|
+| `data/scores/yamagata_et_scores_2025.csv` | Extra Trees — Yamagata |
+| `data/scores/yamagata_ttm_scores_2025.csv` | IBM Granite TTM — Yamagata |
+| `data/scores/akita_et_scores_2025.csv` | Extra Trees — Akita |
+| `data/scores/akita_ttm_scores_2025.csv` | IBM Granite TTM — Akita |
+
+To **regenerate** these scores from scratch:
+- ET scores: run `scripts/et_benchmark_yamagata.py` and `scripts/et_benchmark_akita.py`
+- TTM scores: run `notebooks/ttm_yamagata.ipynb` / `notebooks/ttm_akita.ipynb` on Colab (requires IBM watsonx.ai API key)
+
 ### Run the benchmark
 
-Open `notebooks/kumawatch_benchmark.ipynb` in Jupyter or Google Colab. The notebook includes all 11 methods, evaluation metrics, permutation tests, and calibration analysis.
+Open `notebooks/kumawatch_benchmark.ipynb` in Jupyter or Google Colab. Set the score file paths in **Cell 2** (the `★ USER EDIT HERE` block) to point to the pre-computed score files, then run all cells. The notebook includes all 11 methods, evaluation metrics, permutation tests, and calibration analysis.
+
+### Run calibration validation
+
+To validate post-hoc Platt/Isotonic calibration against GLM-Logit:
+
+```bash
+python scripts/calibration_validation.py --prefecture yamagata
+python scripts/calibration_validation.py --prefecture akita
+```
+
+This script applies Platt scaling and Isotonic regression to ET scores, then compares Brier score, ECE, and Recall@K against the GLM-Logit primary layer. See `scripts/calibration_validation.py` for argument options.
 
 ### View the web maps
 
