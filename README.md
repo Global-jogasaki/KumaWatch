@@ -1,7 +1,6 @@
 # KumaWatch 🐻
 
-**TTM-Bear: Time Series Foundation Models for Operational Wildlife Encounter Prediction**  
-*A Resource-Aware Comparison with Feature-Engineered Baselines*
+**A Multi-Method Wildlife Encounter Alert System for Operational Municipal Deployment in Northern Japan**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
@@ -11,71 +10,125 @@
 
 ## Overview
 
-Human–bear conflicts in northern Japan have escalated dramatically, with **Yamagata Prefecture recording 2,655 bear sightings in 2025**—a 745.5% increase from the previous year. Existing approaches based on engineered features achieve moderate predictive performance, but their suitability for resource-constrained municipal operations remains unexamined.
+Human–bear conflicts in northern Japan have escalated dramatically, with **Yamagata Prefecture recording 2,655 bear sightings in 2025**—a 745.5% increase from the previous year. Municipalities face the challenge of allocating limited patrol resources across large geographic areas under high daily uncertainty.
 
-**KumaWatch** (熊 Watch) is a deployable web-based decision-support system applying **IBM Granite Tiny Time Mixers (TTM)** with in-context learning to predict daily bear encounter risk across **144 grid cells** (each 10 km × 10 km) in Yamagata Prefecture, Japan.
+**KumaWatch** (熊 Watch) is a deployable web-based decision-support system combining three complementary modeling layers to predict daily bear encounter risk across grid cells in Yamagata and Akita Prefectures, Japan.
 
 ---
 
 ## Abstract
 
-We present **TTM-Bear**, applying IBM Granite TTM with in-context learning to predict daily bear encounter risk across 144 grid cells (each 10 km × 10 km) in Yamagata Prefecture. We select Yamagata as the primary study region because its publicly available sighting record (since October 2018) is currently the only Tohoku prefectural dataset reaching the 1,536-day context window required by TTM 1536-96-R2.
+We present **KumaWatch**, a multi-method wildlife encounter alert system designed for operational municipal deployment in northern Japan. The system integrates three complementary modeling layers:
 
-To enable fair comparison, we implement an Extra Trees (ET) baseline following Nakamoto and Fukazawa [2025] on the same data, and validate it on Akita Prefecture (the original evaluation region) using TTM 512-96-R2, the shorter-context variant whose data requirements fit Akita's three-year publicly available record.
+1. **Primary Layer — GLM-Logit**: L2-regularized logistic regression combining cell-level fixed effects with temporal dynamics (rolling 30-day, log-annual, and seasonal harmonics). Evaluated on 365 days in 2025 across 144 cells (Yamagata) and 260 cells (Akita).
 
-**Our central finding is the robust operational advantage of foundation models on resource-aware metrics**: in all 12 head-to-head comparisons of Precision@K and Recall@K (K = 10, 20, 30) across both prefectures, TTM substantially outperforms ET, achieving **1.4–2.0× advantages**:
+2. **Uncertainty Layer — HierBayes**: Hierarchical Bayesian Poisson model (PyMC + NumPyro) quantifying predictive uncertainty across grid cells. Enables a *graduated alert strategy*: restricting alerts to the top-50% confidence subset raises Recall@20 from 0.542 to **0.639** on Yamagata.
 
-- Yamagata TTM-1536: **Recall@20 = 0.492** vs ET 0.361
-- Akita TTM-512: **Recall@20 = 0.395** vs ET 0.215
+3. **Complementary Layer — TTM + Extra Trees**: IBM Granite Tiny Time Mixers (zero-shot in-context learning) and Extra Trees (following Nakamoto & Fukazawa 2025) provide independent signal sources for cross-validation and operational auditability.
 
-This Recall@K dominance is robust across regions and context lengths. Long-context TTM on Yamagata also achieves substantially better probability calibration than ET (**TTM Brier 0.058 vs ET 0.287**, a 5× advantage). Rigorous post-hoc calibration analysis confirms this advantage is irreducible: applying Platt scaling and Isotonic regression to ET reduces its Brier to 0.085–0.092, but TTM retains a **1.47× advantage**.
+We benchmark **11 methods** in total (6 naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) using permutation tests with Bonferroni correction (α = 0.0038 over 13 comparisons). GLM-Logit achieves **Recall@20 = 0.547** (Yamagata) and **0.454** (Akita), statistically significantly outperforming all baselines, TTM, and Extra Trees (*p* < 0.001).
 
-Most strikingly, the operational Recall@K advantage holds even when ROC-AUC favors ET or is near-random for TTM (Akita TTM-512 ROC-AUC = 0.506), **revealing that ROC-AUC fundamentally fails to capture operational utility for top-K alert systems**.
+Cross-layer analysis (Jaccard@20: Primary vs TTM = 0.55, Primary vs ET = 0.30) confirms that TTM and Extra Trees capture partially distinct spatial patterns, motivating their retention as complementary audit layers.
 
-We release the complete codebase, baseline reimplementation, calibration validation scripts, and benchmark dataset under permissive licenses.
+We release the complete benchmark codebase, multi-layer web map, and dataset under permissive licenses to support reproducibility and future municipal deployments.
 
 ---
 
 ## Key Contributions
 
-1. **TTM-Bear prototype** — A deployable web-based decision support system applying IBM Granite TTM to predict daily bear encounter risk across Yamagata Prefecture's 144 grid cells using in-context learning without fine-tuning.
+1. **Three-layer operational architecture** — GLM-Logit (primary precision), HierBayes (uncertainty quantification + graduated alerts), TTM + Extra Trees (complementary audit layers), integrated into a Leaflet.js web decision-support map.
 
-2. **Resource-aware evaluation framework** — Precision@K, Recall@K, and probability calibration (Brier, MAE, ECE) reflecting operational constraints of municipal wildlife management; the first direct head-to-head comparison between time series foundation models and feature-engineered ensemble methods for wildlife encounter prediction.
+2. **Rigorous 11-method benchmark** — Head-to-head comparison of statistical, Bayesian, tree-ensemble, and time series foundation models on identical 365-day evaluation windows across two prefectures, using resource-aware metrics (Precision@K, Recall@K) and Bonferroni-corrected permutation tests.
 
-3. **ROC-AUC vs. Recall@K divergence analysis** — Empirical attribution of the divergence between ROC-AUC and resource-aware metrics to distinct information sources (spatial features vs. temporal dynamics), with seasonal analysis and a dynamic alert operation strategy.
+3. **Graduated alert strategy** — HierBayes uncertainty quantification enables dynamic confidence-based filtering, raising Recall@20 from 0.542 (all-days) to **0.639** (top-50% confidence days).
 
-4. **Open benchmark release** — Complete codebase, Extra Trees reimplementation with cross-prefecture validation, web-based decision support map, and aggregated benchmark data under Apache 2.0 and CC-BY 4.0 licenses.
+4. **Cross-layer divergence analysis** — Jaccard@20 decomposition reveals that GLM-Logit, TTM, and Extra Trees capture partially non-overlapping spatial risk signals, supporting a multi-method ensemble rather than single-model deployment.
+
+5. **Open benchmark release** — Complete codebase, benchmark data (Yamagata 144 cells + Akita 260 cells), interactive web maps, and evaluation scripts under Apache 2.0 and CC-BY 4.0 licenses.
 
 ---
 
 ## Results Summary
 
-| Model | Prefecture | Context | Recall@20 | Brier Score | ROC-AUC |
-|-------|-----------|---------|-----------|-------------|---------|
-| TTM-1536 | Yamagata | 1,536 days | **0.492** | **0.058** | — |
-| Extra Trees | Yamagata | — | 0.361 | 0.287 | 0.677 |
-| TTM-512 | Akita | 512 days | **0.395** | — | 0.506 |
-| Extra Trees | Akita | — | 0.215 | — | 0.719 |
+### Yamagata Prefecture (144 cells, 10 km × 10 km)
 
-*TTM achieves 1.4–2.0× advantages on all 12 Precision@K and Recall@K comparisons (K = 10, 20, 30) across both prefectures.*
+| Method | Recall@10 | Recall@20 | Recall@30 | Notes |
+|--------|-----------|-----------|-----------|-------|
+| **GLM-Logit** | **—** | **0.547** | **—** | Primary layer; *p* < 0.001 vs all |
+| HierBayes (top-50% conf.) | — | **0.639** | — | Graduated alert strategy |
+| HierBayes (all days) | — | 0.542 | — | Uncertainty layer |
+| TTM | — | — | — | Complementary layer |
+| Extra Trees | — | — | — | Complementary layer |
+| Best naive baseline (B0–B5) | — | < GLM | — | |
+
+### Akita Prefecture (260 cells, 10 km × 10 km)
+
+| Method | Recall@20 | Notes |
+|--------|-----------|-------|
+| **GLM-Logit** | **0.454** | Primary layer |
+| TTM | — | Complementary layer |
+| Extra Trees | — | Complementary layer |
+
+*GLM-Logit achieves statistically significant improvement over all 10 competing methods on all 13 Precision@K and Recall@K comparisons (Bonferroni-corrected permutation tests, α = 0.0038).*
+
+*Cross-layer Jaccard@20: GLM-Logit vs TTM = 0.55; GLM-Logit vs Extra Trees = 0.30.*
 
 ---
 
 ## System Architecture
 
 ```
-Daily Inference Pipeline:
-  (i)  Data ingestion  ← Yamagata Prefecture wildlife observation database
-  (ii) Forecast        ← IBM Granite TTM via watsonx.ai API  +  Extra Trees (scikit-learn)
-  (iii)Post-processing ← Grid-level probability scores, Precision@K / Recall@K evaluation
-  (iv) Visualization   ← Interactive web map (Leaflet.js, 10 km grid overlay)
+KumaWatch — Three-Layer Alert System:
+
+  PRIMARY LAYER     GLM-Logit
+  ─────────────     L2-regularized logistic regression
+                    Features: cell fixed effects + rolling30 + log(annual) + sin/cos(DOY) + year_idx
+                    Output: daily probability scores per cell → Precision@K / Recall@K alerts
+
+  UNCERTAINTY       HierBayes
+  LAYER             Hierarchical Bayesian Poisson (PyMC + NumPyro)
+                    2 chains × 1500 draws (500 warm-up)
+                    Output: posterior predictive distributions → graduated alert strategy
+
+  COMPLEMENTARY     TTM (IBM Granite Tiny Time Mixers)  +  Extra Trees
+  LAYER             Zero-shot in-context learning           Nakamoto & Fukazawa [2025] reimplementation
+                    Output: independent risk rankings → cross-validation / auditability
+
+  VISUALIZATION     Interactive web map (Leaflet.js)
+                    10 km grid overlay, 365-day playback, per-layer toggle
 ```
 
-**Grid Definition**: Yamagata Prefecture is partitioned into a 9 × 16 grid of **144 cells**, each approximately 10 km × 10 km. The resolution balances data density (>99% of 1 km cells have zero sightings), patrol unit mobility (10 km matches typical daily patrol radius), and authority boundaries (aligns with municipal jurisdiction boundaries).
+**Grid Definition**: Each prefecture is partitioned into a grid of ~10 km × 10 km cells:
+- Yamagata: 9 × 16 = **144 cells**
+- Akita: 13 × 20 = **260 cells**
 
-**Models**:
-- **TTM 1536-96-R2** (primary): 1,536-day input context, 96-day forecast horizon, zero-shot / in-context learning
-- **Extra Trees** (baseline): reimplementation of Nakamoto & Fukazawa [2025], L2-regularized GLM-Logit operational layer
+---
+
+## Repository Structure
+
+```
+KumaWatch/
+├── notebooks/
+│   ├── kumawatch_benchmark.ipynb      # Full 11-method benchmark (GLM-Logit, HierBayes, ET, TTM, B0-B5)
+│   ├── ttm_yamagata.ipynb             # TTM inference — Yamagata 144 cells
+│   ├── ttm_akita.ipynb                # TTM inference — Akita 260 cells
+│   └── et_akita.ipynb                 # Extra Trees baseline — Akita (Colab)
+├── scripts/
+│   ├── et_benchmark_yamagata.py       # Extra Trees benchmark — Yamagata
+│   ├── et_benchmark_akita.py          # Extra Trees benchmark — Akita
+│   └── generate_glm_webmap.py         # GLM-Logit 2025 predictions → Leaflet HTML map
+├── maps/
+│   ├── kumawatch_primary_layer.html   # GLM-Logit interactive web map (2025)
+│   └── kumawatch_complementary_layer.html  # TTM complementary layer map (2025)
+├── data/
+│   ├── yamagata_10km_daily_timeseries.csv   # 144 cells × daily sightings (Oct 2018–2025)
+│   ├── akita_10km_daily_timeseries.csv      # 260 cells × daily sightings (Apr 2022–2025)
+│   ├── yamagata_10km_grid_coords.csv        # Grid cell coordinates and IDs
+│   ├── akita_10km_grid_coords.csv           # Grid cell coordinates and IDs
+│   └── README.md                            # Data description and provenance
+├── README.md
+└── LICENSE
+```
 
 ---
 
@@ -83,34 +136,58 @@ Daily Inference Pipeline:
 
 | Dataset | Region | Period | Cells | Granularity |
 |---------|--------|--------|-------|-------------|
-| Yamagata bear sightings | Yamagata, Japan | Oct 2018 – present | 144 | Daily |
-| Akita bear sightings | Akita, Japan | Apr 2022 – present | 260 | Daily |
+| Yamagata bear sightings | Yamagata, Japan | Oct 2018 – Dec 2025 | 144 | Daily |
+| Akita bear sightings | Akita, Japan | Apr 2022 – Dec 2025 | 260 | Daily |
 
-Data source: prefectural wildlife observation databases (publicly available).
+Data source: Yamagata and Akita prefectural wildlife observation databases (publicly available).
 
 ---
 
 ## Evaluation Framework
 
-We define evaluation metrics under the **Global formulation**: for each day *t*, let S_t be the set of K grid cells with the highest predicted scores. Then:
+Metrics are computed under the **Global formulation**: for each day *t*, let S_t be the top-K cells by predicted score. Then:
 
-- **Precision@K** = |S_t ∩ A_t| / K, where A_t is the set of cells with actual sightings
+- **Precision@K** = |S_t ∩ A_t| / K
 - **Recall@K** = |S_t ∩ A_t| / |A_t|
 
-This formulation evaluates each model's ability to rank the **entire grid**, reflecting how alert systems are operated in practice.
+where A_t is the set of cells with actual sightings on day *t*. Results are averaged over the 365-day evaluation window (2025).
 
-Additional metrics: Brier score, Expected Calibration Error (ECE), MAE, RMSE (per-cell, on 90 daily-evaluable Yamagata cells).
+Statistical significance: **permutation tests** with Bonferroni correction over 13 comparisons (α = 0.0038). Additional metrics: Brier score, ECE, MAE, RMSE, per-cell ROC-AUC.
+
+---
+
+## Getting Started
+
+### Dependencies
+
+```bash
+# Core
+pip install scikit-learn pandas numpy scipy
+
+# Bayesian layer
+pip install pymc numPyro
+
+# Visualization
+# Maps are self-contained HTML (no server required)
+```
+
+### Run the benchmark
+
+Open `notebooks/kumawatch_benchmark.ipynb` in Jupyter or Google Colab. The notebook includes all 11 methods, evaluation metrics, permutation tests, and calibration analysis.
+
+### View the web maps
+
+Open `maps/kumawatch_primary_layer.html` in any modern browser — no server needed. Use the date slider to explore daily predictions across 2025.
 
 ---
 
 ## Citation
 
 ```bibtex
-@inproceedings{jogasaki2026ttmbear,
+@inproceedings{jogasaki2026kumawatch,
   author    = {Hiroshi Jogasaki},
-  title     = {{TTM-Bear}: Time Series Foundation Models for Operational Wildlife
-               Encounter Prediction---A Resource-Aware Comparison with
-               Feature-Engineered Baselines},
+  title     = {{KumaWatch}: A Multi-Method Wildlife Encounter Alert System for
+               Operational Municipal Deployment in Northern Japan},
   booktitle = {Proceedings of the 34th ACM SIGSPATIAL International Conference on
                Advances in Geographic Information Systems (SIGSPATIAL '26)},
   year      = {2026},
