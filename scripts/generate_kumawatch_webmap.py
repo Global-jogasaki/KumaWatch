@@ -291,78 +291,78 @@ html = f"""<!DOCTYPE html>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}
-body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d1c13;color:#ddebd5;height:100vh;display:flex;flex-direction:column;overflow:hidden}}
+body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d1c13;color:#eef8ec;height:100vh;display:flex;flex-direction:column;overflow:hidden}}
 /* ── header ── */
 #header{{background:#162e1e;padding:8px 14px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #2a5c36;flex-shrink:0;flex-wrap:wrap}}
-#header h1{{font-size:15px;font-weight:700;color:#fff;white-space:nowrap}}
+#header h1{{font-size:17px;font-weight:700;color:#fff;white-space:nowrap}}
 #layer-wrap{{display:flex;align-items:center;gap:6px;margin-left:auto}}
-#layer-wrap label{{font-size:11px;color:#88a894}}
-#layer-sel{{background:#1e3c28;color:#ddebd5;border:1px solid #3a6a46;padding:4px 8px;font-size:12px;border-radius:5px;cursor:pointer}}
-#layer-name{{font-size:12px;font-weight:700;color:#6adf8a;white-space:nowrap}}
+#layer-wrap label{{font-size:13px;color:#b0d0bc}}
+#layer-sel{{background:#1e3c28;color:#eef8ec;border:1px solid #3a6a46;padding:4px 8px;font-size:13px;border-radius:5px;cursor:pointer}}
+#layer-name{{font-size:14px;font-weight:700;color:#6aff90;white-space:nowrap}}
 /* ── notice ── */
-#notice{{background:#0a1e10;border-bottom:1px solid #1c3c22;padding:4px 14px;font-size:10.5px;color:#7a9a82;flex-shrink:0}}
+#notice{{background:#0a1e10;border-bottom:1px solid #1c3c22;padding:5px 14px;font-size:12px;color:#a0c0a8;flex-shrink:0}}
 #notice strong{{color:#e07b2a}}
 /* ── main ── */
 #main{{display:flex;flex:1;overflow:hidden}}
 /* ── sidebar ── */
-#sidebar{{width:295px;background:#0f1e14;overflow-y:auto;flex-shrink:0;border-right:1px solid #1c3c22}}
+#sidebar{{width:315px;background:#0f1e14;overflow-y:auto;flex-shrink:0;border-right:1px solid #1c3c22}}
 #map{{flex:1}}
 /* ── panels ── */
 .panel{{padding:10px 12px;border-bottom:1px solid #1c3c22}}
-.pt{{font-size:10px;color:#6a9474;font-weight:700;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}}
+.pt{{font-size:12px;color:#a0d8b0;font-weight:700;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}}
 /* ── date section ── */
 #date-display{{font-size:22px;font-weight:700;color:#fff;line-height:1.1}}
-#day-info{{font-size:10.5px;color:#7a9a82;margin-top:2px}}
+#day-info{{font-size:12px;color:#a0c0a8;margin-top:2px}}
 .month-row{{display:flex;gap:2px;flex-wrap:wrap;margin:6px 0 3px}}
-.mbtn{{background:#1a3820;border:1px solid #2a5830;color:#88a894;font-size:10px;padding:2px 3px;border-radius:3px;cursor:pointer;flex:1;min-width:24px;text-align:center;transition:background .15s}}
+.mbtn{{background:#1a3820;border:1px solid #2a5830;color:#a0c0a8;font-size:11px;padding:3px 3px;border-radius:3px;cursor:pointer;flex:1;min-width:24px;text-align:center;transition:background .15s}}
 .mbtn:hover,.mbtn.active{{background:#2a6040;color:#fff;border-color:#4a9060}}
 #slider-wrap{{margin:5px 0}}
 #day-slider{{width:100%;cursor:pointer;accent-color:#3a9050}}
 .play-row{{display:flex;gap:6px;align-items:center;margin-top:5px}}
-#play-btn{{background:#1e5030;border:1px solid #3a8046;color:#aadcb8;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px}}
+#play-btn{{background:#1e5030;border:1px solid #3a8046;color:#c0ecd0;padding:5px 13px;border-radius:4px;cursor:pointer;font-size:12px}}
 #play-btn:hover{{background:#2a6840}}
-#speed-sel{{background:#1a2e1e;border:1px solid #2a4030;color:#aadcb8;font-size:10px;padding:2px 4px;border-radius:3px}}
+#speed-sel{{background:#1a2e1e;border:1px solid #2a4030;color:#c0ecd0;font-size:11px;padding:2px 4px;border-radius:3px}}
 /* ── threshold ── */
-#thr-val{{font-size:12px;font-weight:700;color:#6adf8a}}
+#thr-val{{font-size:13px;font-weight:700;color:#6aff90}}
 #thr-slider{{width:100%;cursor:pointer;accent-color:#3a9050;margin-top:4px}}
 /* ── legend ── */
-.leg-row{{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:11px}}
-.leg-box{{width:14px;height:14px;border-radius:2px;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}}
+.leg-row{{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}}
+.leg-box{{width:16px;height:16px;border-radius:2px;flex-shrink:0;border:1px solid rgba(255,255,255,.3)}}
 /* ── stats ── */
 .stat-grid{{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px}}
 .stat-item{{background:#0d1e12;border:1px solid #1c3422;border-radius:4px;padding:5px 7px}}
-.stat-label{{font-size:9.5px;color:#6a8a74;margin-bottom:1px}}
-.stat-val{{font-size:15px;font-weight:700;color:#ddebd5}}
+.stat-label{{font-size:11px;color:#8aaa94;margin-bottom:1px}}
+.stat-val{{font-size:17px;font-weight:700;color:#eef8ec}}
 /* ── ranking ── */
 .rank-row{{display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid #1a2e1e;cursor:pointer;transition:background .12s}}
 .rank-row:hover{{background:#142018}}
-.rank-no{{font-size:11px;color:#6a8a74;width:18px;text-align:right;flex-shrink:0}}
-.rank-city{{font-size:11px;font-weight:700;color:#ddebd5;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
-.rank-badge{{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap}}
-.rank-pct{{font-size:11px;color:#88a894;text-align:right;width:42px;flex-shrink:0}}
+.rank-no{{font-size:12px;color:#8aaa94;width:18px;text-align:right;flex-shrink:0}}
+.rank-city{{font-size:13px;font-weight:700;color:#eef8ec;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.rank-badge{{font-size:11px;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap}}
+.rank-pct{{font-size:12px;color:#a8c8b4;text-align:right;width:44px;flex-shrink:0}}
 /* ── detail panel ── */
 #detail-panel{{display:none}}
-#detail-panel .dp-city{{font-size:15px;font-weight:700;color:#fff;margin-bottom:2px}}
-#detail-panel .dp-gid{{font-size:10px;color:#6a8a74}}
+#detail-panel .dp-city{{font-size:16px;font-weight:700;color:#fff;margin-bottom:2px}}
+#detail-panel .dp-gid{{font-size:11px;color:#8aaa94}}
 .dp-section{{margin:8px 0 0}}
-.dp-section-title{{font-size:10px;font-weight:700;color:#6a9474;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}}
-.dp-row{{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:11.5px}}
-.dp-label{{color:#88a894;width:80px;flex-shrink:0}}
-.dp-val{{color:#ddebd5;font-weight:700}}
-.dp-ci{{color:#7a9a82;font-size:10.5px}}
-.dp-agree{{color:#4adf7a;font-size:10px;font-weight:700}}
-.dp-disagree{{color:#df9a3a;font-size:10px;font-weight:700}}
-.dp-alert-badge{{font-size:10px;font-weight:700;padding:1px 7px;border-radius:3px}}
+.dp-section-title{{font-size:12px;font-weight:700;color:#a0d8b0;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}}
+.dp-row{{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:13px}}
+.dp-label{{color:#a8c8b4;width:82px;flex-shrink:0}}
+.dp-val{{color:#eef8ec;font-weight:700}}
+.dp-ci{{color:#a0c0a8;font-size:12px}}
+.dp-agree{{color:#4aef7a;font-size:12px;font-weight:700}}
+.dp-disagree{{color:#ef9a3a;font-size:12px;font-weight:700}}
+.dp-alert-badge{{font-size:12px;font-weight:700;padding:2px 8px;border-radius:3px}}
 .hist-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:4px}}
 .hist-item{{background:#0d1e12;border:1px solid #1c3422;border-radius:3px;padding:4px 6px;text-align:center}}
-.hist-item .hi-label{{font-size:9px;color:#6a8a74}}
-.hist-item .hi-val{{font-size:14px;font-weight:700;color:#ddebd5}}
-#detail-back{{background:#1e3820;border:1px solid #2a5030;color:#aadcb8;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:10.5px;margin-bottom:6px}}
+.hist-item .hi-label{{font-size:11px;color:#8aaa94}}
+.hist-item .hi-val{{font-size:15px;font-weight:700;color:#eef8ec}}
+#detail-back{{background:#1e3820;border:1px solid #2a5030;color:#c0ecd0;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-bottom:6px}}
 /* ── risk colors ── */
-.risk-alert{{background:#cc1a1a;color:#fff}}
-.risk-high {{background:#d46010;color:#fff}}
-.risk-mid  {{background:#c8a000;color:#1a1000}}
-.risk-low  {{background:#3a7830;color:#cdecc5}}
+.risk-alert{{background:#e81515;color:#fff}}
+.risk-high {{background:#f06520;color:#fff}}
+.risk-mid  {{background:#e0b800;color:#1a1000}}
+.risk-low  {{background:#28a030;color:#d8f8d0}}
 </style>
 </head>
 <body>
@@ -412,10 +412,10 @@ body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d
     <!-- 凡例 -->
     <div class="panel">
       <div class="pt">リスクレベル</div>
-      <div class="leg-row"><div class="leg-box" style="background:#cc1a1a"></div><span>緊急 (≥70%)</span></div>
-      <div class="leg-row"><div class="leg-box" style="background:#d46010"></div><span>高危険 (45–70%)</span></div>
-      <div class="leg-row"><div class="leg-box" style="background:#c8a000"></div><span>警戒 (20–45%)</span></div>
-      <div class="leg-row"><div class="leg-box" style="background:#3a7830"></div><span>注意 (閾値–20%)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#e81515"></div><span>緊急 (≥70%)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#f06520"></div><span>高危険 (45–70%)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#e0b800"></div><span>警戒 (20–45%)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#28a030"></div><span>注意 (閾値–20%)</span></div>
       <div class="leg-row"><div class="leg-box" style="background:#1a3820;border:1px dashed #2a5030"></div><span style="color:#4a7050">非表示 (閾値未満)</span></div>
     </div>
     <!-- デイリー統計 -->
@@ -506,10 +506,10 @@ const IDX = {{glm:0, hb_m:1, hb_lo:2, hb_hi:3, ttm:4, et:5, act:6}};
 
 // ─── Risk level ──────────────────────────────────────────────────────────────
 function riskInfo(score) {{
-  if (score >= 0.70) return {{level:'alert', label:'緊急',   cls:'risk-alert', color:'#cc1a1a'}};
-  if (score >= 0.45) return {{level:'high',  label:'高危険', cls:'risk-high',  color:'#d46010'}};
-  if (score >= 0.20) return {{level:'mid',   label:'警戒',   cls:'risk-mid',   color:'#c8a000'}};
-  return                     {{level:'low',  label:'注意',   cls:'risk-low',   color:'#3a7830'}};
+  if (score >= 0.70) return {{level:'alert', label:'緊急',   cls:'risk-alert', color:'#e81515'}};
+  if (score >= 0.45) return {{level:'high',  label:'高危険', cls:'risk-high',  color:'#f06520'}};
+  if (score >= 0.20) return {{level:'mid',   label:'警戒',   cls:'risk-mid',   color:'#e0b800'}};
+  return                     {{level:'low',  label:'注意',   cls:'risk-low',   color:'#28a030'}};
 }}
 
 function layerScore(cell, layer) {{
@@ -526,9 +526,9 @@ const map = L.map('map', {{
   center: [38.7, 140.2], zoom: 8,
   zoomControl: true, scrollWheelZoom: true
 }});
-L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-  attribution: '© OpenStreetMap',
-  opacity: 0.55
+L.tileLayer('https://{{s}}.basemaps.cartocdn.com/dark_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+  opacity: 0.92
 }}).addTo(map);
 
 // Rectangle layers
@@ -556,8 +556,8 @@ function renderMap() {{
     }} else {{
       const ri = riskInfo(score);
       rect.setStyle({{
-        fillColor: ri.color, fillOpacity: 0.65,
-        color:'#fff', opacity:0.4, weight:0.6
+        fillColor: ri.color, fillOpacity: 0.78,
+        color:'#ffffff', opacity:0.90, weight:1.5
       }});
     }}
   }});
