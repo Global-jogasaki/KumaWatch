@@ -363,6 +363,8 @@ body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d
 .risk-high {{background:#f06520;color:#fff}}
 .risk-mid  {{background:#e0b800;color:#1a1000}}
 .risk-low  {{background:#28a030;color:#d8f8d0}}
+/* ── on-map cell labels ── */
+.cell-label{{background:transparent!important;border:none!important;box-shadow:none!important;color:#0a200f;font-size:10px;font-weight:700;font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;text-align:center;white-space:nowrap;pointer-events:none!important;text-shadow:0 0 4px #fff,0 0 4px #fff,1px 1px 0 rgba(255,255,255,.9),-1px -1px 0 rgba(255,255,255,.9)}}
 </style>
 </head>
 <body>
@@ -526,9 +528,10 @@ const map = L.map('map', {{
   center: [38.7, 140.2], zoom: 8,
   zoomControl: true, scrollWheelZoom: true
 }});
-L.tileLayer('https://{{s}}.basemaps.cartocdn.com/dark_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-  opacity: 0.92
+L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  opacity: 1.0,
+  maxZoom: 18
 }}).addTo(map);
 
 // Rectangle layers
@@ -542,6 +545,26 @@ Object.entries(COORDS).forEach(([gid, c]) => {{
   rects[gid] = rect;
 }});
 
+// City-name label markers (divIcon, centered on each cell)
+const labelMarkers = {{}};
+Object.entries(COORDS).forEach(([gid, c]) => {{
+  const city = c.city;
+  if (!city || city === gid) return;
+  const lm = L.marker([c.lat, c.lng], {{
+    icon: L.divIcon({{
+      className: 'cell-label',
+      html: city,
+      iconSize: [96, 16],
+      iconAnchor: [48, 8]
+    }}),
+    interactive: false,
+    zIndexOffset: 500
+  }}).addTo(map);
+  const el = lm.getElement();
+  if (el) el.style.visibility = 'hidden';
+  labelMarkers[gid] = lm;
+}});
+
 // ─── Map render ──────────────────────────────────────────────────────────────
 function renderMap() {{
   const ds    = DATES[currentIdx];
@@ -553,12 +576,16 @@ function renderMap() {{
     if (!rect) return;
     if (score < hideThreshold) {{
       rect.setStyle({{fillOpacity:0, opacity:0}});
+      const lm = labelMarkers[gid];
+      if (lm) {{ const el = lm.getElement(); if (el) el.style.visibility = 'hidden'; }}
     }} else {{
       const ri = riskInfo(score);
       rect.setStyle({{
-        fillColor: ri.color, fillOpacity: 0.78,
-        color:'#ffffff', opacity:0.90, weight:1.5
+        fillColor: ri.color, fillOpacity: 0.45,
+        color:'#ffffff', opacity:0.80, weight:1.5
       }});
+      const lm = labelMarkers[gid];
+      if (lm) {{ const el = lm.getElement(); if (el) el.style.visibility = 'visible'; }}
     }}
   }});
 }}
