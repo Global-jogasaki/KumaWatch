@@ -5,6 +5,20 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![ACM SIGSPATIAL 2026](https://img.shields.io/badge/ACM%20SIGSPATIAL-2026-red.svg)](https://sigspatial.acm.org/)
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen.svg)](https://global-jogasaki.github.io/KumaWatch/)
+
+---
+
+## 🌐 Live Demo
+
+> **マップをブラウザで今すぐ確認できます — サーバー不要**
+
+| リンク | 内容 |
+|--------|------|
+| [**🗺️ KumaWatch ランディングページ**](https://global-jogasaki.github.io/KumaWatch/) | システム概要・マップへのリンク |
+| [**▶ 三層統合予測マップ（2025年）**](https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | GLM-Logit / HierBayes / TTM / Extra Trees を切り替え表示。365日スライダー、セルクリックで詳細表示 |
+
+ローカルで開く場合は `maps/kumawatch_primary_layer.html` をブラウザで直接開いてください（単一 HTML ファイル、外部依存なし）。
 
 ---
 
@@ -108,24 +122,30 @@ KumaWatch — Three-Layer Alert System:
 
 ```
 KumaWatch/
+├── index.html                             # GitHub Pages landing page (live demo entry point)
 ├── notebooks/
-│   ├── kumawatch_benchmark.ipynb      # Full 11-method benchmark (GLM-Logit, HierBayes, ET, TTM, B0-B5)
-│   ├── ttm_yamagata.ipynb             # TTM inference — Yamagata 144 cells
-│   ├── ttm_akita.ipynb                # TTM inference — Akita 260 cells
-│   └── et_akita.ipynb                 # Extra Trees baseline — Akita (Colab)
+│   ├── kumawatch_benchmark.ipynb          # Full 11-method benchmark (GLM-Logit, HierBayes, ET, TTM, B0-B5)
+│   ├── ttm_yamagata.ipynb                 # TTM inference — Yamagata 144 cells
+│   ├── ttm_akita.ipynb                    # TTM inference — Akita 260 cells
+│   └── et_akita.ipynb                     # Extra Trees baseline — Akita (Colab)
 ├── scripts/
-│   ├── et_benchmark_yamagata.py       # Extra Trees benchmark — Yamagata
-│   ├── et_benchmark_akita.py          # Extra Trees benchmark — Akita
-│   └── generate_glm_webmap.py         # GLM-Logit 2025 predictions → Leaflet HTML map
+│   ├── et_benchmark_yamagata.py           # Extra Trees benchmark — Yamagata
+│   ├── et_benchmark_akita.py              # Extra Trees benchmark — Akita
+│   ├── generate_kumawatch_webmap.py       # Three-layer map generator (all 4 models)
+│   └── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
 ├── maps/
-│   ├── kumawatch_primary_layer.html   # GLM-Logit interactive web map (2025)
-│   └── kumawatch_complementary_layer.html  # TTM complementary layer map (2025)
+│   └── kumawatch_primary_layer.html       # Three-layer interactive web map (2025) — self-contained HTML
 ├── data/
-│   ├── yamagata_10km_daily_timeseries.csv   # 144 cells × daily sightings (Oct 2018–2025)
-│   ├── akita_10km_daily_timeseries.csv      # 260 cells × daily sightings (Apr 2022–2025)
-│   ├── yamagata_10km_grid_coords.csv        # Grid cell coordinates and IDs
-│   ├── akita_10km_grid_coords.csv           # Grid cell coordinates and IDs
-│   └── README.md                            # Data description and provenance
+│   ├── yamagata_10km_daily_timeseries.csv # 144 cells × daily sightings (Oct 2018–2025)
+│   ├── akita_10km_daily_timeseries.csv    # 260 cells × daily sightings (Apr 2022–2025)
+│   ├── yamagata_10km_grid_coords.csv      # Grid cell coordinates and IDs
+│   ├── akita_10km_grid_coords.csv         # Grid cell coordinates and IDs
+│   ├── scores/                            # Pre-computed 2025 test-period scores
+│   │   ├── yamagata_et_scores_2025.csv
+│   │   ├── yamagata_ttm_scores_2025.csv
+│   │   ├── akita_et_scores_2025.csv
+│   │   └── akita_ttm_scores_2025.csv
+│   └── README.md                          # Data description and provenance
 ├── README.md
 └── LICENSE
 ```
@@ -171,6 +191,16 @@ pip install pymc numPyro
 # Maps are self-contained HTML (no server required)
 ```
 
+### View the web maps
+
+Open the live demo in your browser — no installation needed:
+
+```
+https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html
+```
+
+Or open `maps/kumawatch_primary_layer.html` locally in any modern browser.
+
 ### Prerequisite: pre-computed score files
 
 The benchmark notebook (`notebooks/kumawatch_benchmark.ipynb`) requires pre-computed ET and TTM daily scores for 2025. These are included in `data/scores/`:
@@ -192,18 +222,18 @@ Open `notebooks/kumawatch_benchmark.ipynb` in Jupyter or Google Colab. Set the s
 
 ### Run calibration validation
 
-To validate post-hoc Platt/Isotonic calibration against GLM-Logit:
-
 ```bash
 python scripts/calibration_validation.py --prefecture yamagata
 python scripts/calibration_validation.py --prefecture akita
 ```
 
-This script applies Platt scaling and Isotonic regression to ET scores, then compares Brier score, ECE, and Recall@K against the GLM-Logit primary layer. See `scripts/calibration_validation.py` for argument options.
+### Generate the web map
 
-### View the web maps
+```bash
+python scripts/generate_kumawatch_webmap.py
+```
 
-Open `maps/kumawatch_primary_layer.html` in any modern browser — no server needed. Use the date slider to explore daily predictions across 2025.
+Outputs `kumawatch_map_2025.html` (self-contained, ~1.5 MB). Requires pre-computed TTM score CSV at the path configured in the script header.
 
 ---
 
