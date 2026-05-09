@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>KumaWatch 🐻 — 山形県 熊出没危険予測マップ 2025</title>
+<title>KumaWatch 🐻 — Bear Encounter Risk Prediction Map · Yamagata 2025</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Meiryo','Hiragino Kaku Gothic ProN','Segoe UI',sans-serif;background:#0d1c13;color:#ddebd5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px}
+body{font-family:'Segoe UI','Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d1c13;color:#ddebd5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px}
 .hero{text-align:center;max-width:720px;width:100%}
 .bear{font-size:72px;line-height:1;margin-bottom:16px}
 h1{font-size:2rem;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.02em}
@@ -54,24 +54,24 @@ h1{font-size:2rem;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.
   <div class="cards">
     <div class="card">
       <div class="card-icon">🗺️</div>
-      <div class="card-title">三層統合予測マップ（2025年）</div>
-      <div class="card-desc">GLM-Logit・HierBayes・TTM・Extra Trees の4モデルを切り替え表示。日付スライダーで365日を探索。セルクリックで詳細パネルを表示。</div>
+      <div class="card-title">Three-Layer Prediction Map (2025)</div>
+      <div class="card-desc">Switch between 4 models: GLM-Logit, HierBayes, TTM, and Extra Trees. Explore all 365 days with the date slider. Click any cell for a detailed stats panel.</div>
       <div class="card-layer">
-        <span class="badge b-primary">GLM-Logit 主層</span>
-        <span class="badge b-bayes">HierBayes 不確実性層</span>
-        <span class="badge b-comp">TTM 補完層</span>
-        <span class="badge b-comp">Extra Trees 補完層</span>
+        <span class="badge b-primary">GLM-Logit Primary</span>
+        <span class="badge b-bayes">HierBayes Uncertainty</span>
+        <span class="badge b-comp">TTM Complementary</span>
+        <span class="badge b-comp">Extra Trees Complementary</span>
       </div>
-      <a class="btn" href="maps/kumawatch_primary_layer.html" target="_blank">▶ マップを開く</a>
+      <a class="btn" href="maps/kumawatch_primary_layer.html" target="_blank">&#9654; Open Map</a>
     </div>
     <div class="card">
       <div class="card-icon">📊</div>
-      <div class="card-title">ベンチマーク・再現</div>
-      <div class="card-desc">11手法の完全ベンチマーク実装。Precision@K, Recall@K, Brier スコア, ECE, Bonferroni 補正 permutation テスト収録。</div>
+      <div class="card-title">Benchmark &amp; Reproducibility</div>
+      <div class="card-desc">Complete 11-method benchmark implementation. Includes Precision@K, Recall@K, Brier score, ECE, and Bonferroni-corrected permutation tests.</div>
       <div class="card-layer">
         <span class="badge b-primary">kumawatch_benchmark.ipynb</span>
       </div>
-      <a class="btn btn-outline" href="https://github.com/Global-jogasaki/KumaWatch" target="_blank">📂 GitHub リポジトリ</a>
+      <a class="btn btn-outline" href="https://github.com/Global-jogasaki/KumaWatch" target="_blank">&#128194; GitHub Repository</a>
     </div>
   </div>
 
@@ -79,14 +79,14 @@ h1{font-size:2rem;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.
 
   <div class="meta">
     <strong style="color:#a0c8a8">Three-Layer Architecture</strong><br>
-    <span style="color:#6adf8a">①</span> <strong>Primary</strong>: GLM-Logit — L2-regularized logistic regression (cell fixed-effects + rolling30 + log-annual + seasonal harmonics + year_idx)<br>
-    <span style="color:#6ab8df">②</span> <strong>Uncertainty</strong>: HierBayes — hierarchical Bayesian Poisson (PyMC + NumPyro) → graduated alert strategy · Recall@20 <strong>0.542 → 0.639</strong> (top-50% conf.)<br>
-    <span style="color:#dfa050">③</span> <strong>Complementary</strong>: IBM Granite TTM (zero-shot) + Extra Trees · Jaccard@20 GLM vs TTM = <strong>0.55</strong><br>
+    <span style="color:#6adf8a">&#9312;</span> <strong>Primary</strong>: GLM-Logit — L2-regularized logistic regression (cell fixed-effects + rolling30 + log-annual + seasonal harmonics + year_idx)<br>
+    <span style="color:#6ab8df">&#9313;</span> <strong>Uncertainty</strong>: HierBayes — hierarchical Bayesian Poisson (PyMC + NumPyro) &rarr; graduated alert strategy &middot; Recall@20 <strong>0.542 &rarr; 0.639</strong> (top-50% conf.)<br>
+    <span style="color:#dfa050">&#9314;</span> <strong>Complementary</strong>: IBM Granite TTM (zero-shot) + Extra Trees &middot; Jaccard@20 GLM vs TTM = <strong>0.55</strong><br>
     <br>
-    Data: Yamagata &amp; Akita prefectural wildlife observation databases (public) ·
-    Code: <a href="https://github.com/Global-jogasaki/KumaWatch">Apache 2.0</a> ·
+    Data: Yamagata &amp; Akita prefectural wildlife observation databases (public) &middot;
+    Code: <a href="https://github.com/Global-jogasaki/KumaWatch">Apache 2.0</a> &middot;
     Data: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a><br>
-    Author: Hiroshi Jogasaki — <em>Paper submitted to ACM SIGSPATIAL 2026 Applications Track</em>
+    Author: Hiroshi Jogasaki &mdash; <em>Paper submitted to ACM SIGSPATIAL 2026 Applications Track</em>
   </div>
 </div>
 </body>

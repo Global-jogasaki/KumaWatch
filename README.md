@@ -11,14 +11,14 @@
 
 ## 🌐 Live Demo
 
-> **マップをブラウザで今すぐ確認できます — サーバー不要**
+> **View the interactive map in your browser — no server or installation required**
 
-| リンク | 内容 |
-|--------|------|
-| [**🗺️ KumaWatch ランディングページ**](https://global-jogasaki.github.io/KumaWatch/) | システム概要・マップへのリンク |
-| [**▶ 三層統合予測マップ（2025年）**](https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | GLM-Logit / HierBayes / TTM / Extra Trees を切り替え表示。365日スライダー、セルクリックで詳細表示 |
+| Link | Description |
+|------|-------------|
+| [**🗺️ KumaWatch Landing Page**](https://global-jogasaki.github.io/KumaWatch/) | System overview and links to the interactive maps |
+| [**▶ Three-Layer Prediction Map (2025)**](https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
 
-ローカルで開く場合は `maps/kumawatch_primary_layer.html` をブラウザで直接開いてください（単一 HTML ファイル、外部依存なし）。
+To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern browser (single self-contained HTML file, no external dependencies).
 
 ---
 
@@ -26,7 +26,7 @@
 
 Human–bear conflicts in northern Japan have escalated dramatically, with **Yamagata Prefecture recording 2,655 bear sightings in 2025**—a 745.5% increase from the previous year. Municipalities face the challenge of allocating limited patrol resources across large geographic areas under high daily uncertainty.
 
-**KumaWatch** (熊 Watch) is a deployable web-based decision-support system combining three complementary modeling layers to predict daily bear encounter risk across grid cells in Yamagata and Akita Prefectures, Japan.
+**KumaWatch** is a deployable web-based decision-support system combining three complementary modeling layers to predict daily bear encounter risk across grid cells in Yamagata and Akita Prefectures, Japan.
 
 ---
 
