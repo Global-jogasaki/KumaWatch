@@ -176,6 +176,20 @@ for t_idx in range(T_te):
 
 print(f'    HierBayes 完了: mean range [{hb_mean.min():.4f}, {hb_mean.max():.4f}]')
 
+# HierBayes を 0-1 スケールに正規化 (TTM と同様に 95パーセンタイル → 1.0)
+# weighted_total が大きいと事後平均が圧縮されるため、相対的なリスク順位を保ちつつ
+# GLM / TTM と比較可能なスケールに変換する。
+_hb_pos = hb_mean[hb_mean > 0]
+if len(_hb_pos) > 0:
+    _hb_p95 = float(np.percentile(_hb_pos, 95))
+    if _hb_p95 > 0:
+        _scale   = 1.0 / _hb_p95
+        hb_mean  = np.clip(hb_mean * _scale, 0.0, 1.0).astype(np.float32)
+        hb_lo    = np.clip(hb_lo   * _scale, 0.0, 1.0).astype(np.float32)
+        hb_hi    = np.clip(hb_hi   * _scale, 0.0, 1.0).astype(np.float32)
+        print(f'    HierBayes 正規化 (p95={_hb_p95:.5f}): '
+              f'[{hb_mean.min():.4f}, {hb_mean.max():.4f}]')
+
 # ─── 5. グリッド座標・市町村名 ───────────────────────────────────────────────
 print('[5] COORDS 構築...', flush=True)
 extra_city_map = {
@@ -239,9 +253,12 @@ for t, d in enumerate(test_dates):
     cells = {}
     for ci, gid in enumerate(grid_cols):
         glm_v = float(g_glm[ci])
+        hb_v  = float(g_hbm[ci])
         ttm_v = float(g_ttm[ci])
         et_v  = float(g_et[ci])
-        if glm_v < INCLUDE_THRESH and ttm_v < INCLUDE_THRESH * 2 and et_v < INCLUDE_THRESH * 2:
+        # HierBayes スコアも考慮：いずれかのレイヤーが閾値以上なら格納
+        if (glm_v < INCLUDE_THRESH and hb_v < INCLUDE_THRESH
+                and ttm_v < INCLUDE_THRESH * 2 and et_v < INCLUDE_THRESH * 2):
             continue
         cells[gid] = [
             round(glm_v, 4),
