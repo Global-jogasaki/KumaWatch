@@ -136,7 +136,10 @@ et_clf.fit(X_tr.toarray() if hasattr(X_tr, 'toarray') else X_tr, y_tr)
 et_scores = et_clf.predict_proba(
     X_te.toarray() if hasattr(X_te, 'toarray') else X_te)[:, 1]\
     .reshape(T_te, n_cells).astype(np.float32)
-print(f'    ET  scores shape={et_scores.shape}, max={et_scores.max():.4f}')
+print(f'    ET  raw scores shape={et_scores.shape}, max={et_scores.max():.4f}')
+# TTM・HierBayes と同様に 95パーセンタイル正規化 (葉ノード比率が圧縮されるため)
+et_scores = normalize_to_unit(et_scores)
+print(f'    ET  normalized: [{et_scores.min():.4f}, {et_scores.max():.4f}]')
 
 # ─── 4. HierBayes Beta-Binomial 季節近似 ─────────────────────────────────────
 print('[4] HierBayes 近似計算中 (Beta-Binomial seasonal window)...', flush=True)
@@ -256,9 +259,10 @@ for t, d in enumerate(test_dates):
         hb_v  = float(g_hbm[ci])
         ttm_v = float(g_ttm[ci])
         et_v  = float(g_et[ci])
-        # HierBayes スコアも考慮：いずれかのレイヤーが閾値以上なら格納
+        # 正規化済み ET は最小値が~0.046 あるため TTM と同じ閾値では全セルが通過する。
+        # ET は表示閾値 (0.15) を INCLUDE 閾値として使用（それ未満は他モデルで補う）。
         if (glm_v < INCLUDE_THRESH and hb_v < INCLUDE_THRESH
-                and ttm_v < INCLUDE_THRESH * 2 and et_v < INCLUDE_THRESH * 2):
+                and ttm_v < INCLUDE_THRESH * 2 and et_v < 0.15):
             continue
         cells[gid] = [
             round(glm_v, 4),
