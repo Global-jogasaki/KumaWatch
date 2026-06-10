@@ -180,8 +180,8 @@ KumaWatch/
 │   ├── kumawatch_primary_layer.html       # Three-layer interactive web map (2025) — self-contained HTML
 │   └── kumawatch_complementary_layer.html # Complementary-layer focused map view
 ├── data/
-│   ├── yamagata_10km_daily_timeseries.csv # 144 cells × daily sightings (Apr 2018–2025)
-│   ├── akita_10km_daily_timeseries.csv    # 260 cells × daily sightings (Apr 2020–2025)
+│   ├── yamagata_10km_daily_timeseries.csv # 144 cells × daily sightings (Apr 2018–Dec 2025; training from Oct 2018)
+│   ├── akita_10km_daily_timeseries.csv    # 260 cells × daily sightings (Apr 2020–Dec 2025; training from Apr 2022)
 │   ├── yamagata_10km_grid_coords.csv      # Grid cell coordinates and IDs
 │   ├── akita_10km_grid_coords.csv         # Grid cell coordinates and IDs
 │   ├── scores/                            # Pre-computed 2025 test-period scores
