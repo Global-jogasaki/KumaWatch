@@ -48,7 +48,7 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 2. **Negative result with operational reading** — Neither foundation-model inference (~4 h/day) nor MCMC (~30 min/day) buys top-K accuracy over far cheaper alternatives. On Yamagata, GLM-Logit's lead over the static prior is not significant (*p* = 0.155). Extra Trees is strongly miscalibrated (BSS = −1.63). These are null results about ranking only; downstream uses of HierBayes posterior variance and ET environmental covariates are untested rather than refuted.
 
-3. **Browser-based decision-support prototype** — A single-file Leaflet map (no server-side computation, no external API) serving pre-computed scores for GLM-Logit, HierBayes, TTM and Extra Trees across all 144 Yamagata cells × 365 days, with GLM-Logit as the default decision layer, four risk tiers and a user-adjustable threshold. Architecture follows directly from Table 1's cost column.
+3. **Browser-based decision-support prototype** — A single-file Leaflet map (no server-side computation, no external API) serving pre-computed scores for GLM-Logit, HierBayes, TTM and Extra Trees across all 144 Yamagata cells × 365 days, with GLM-Logit as the default decision layer, four risk tiers and a slider for how many cells to show (default 20, the paper's patrol budget). Architecture follows directly from Table 1's cost column.
 
 4. **Open benchmark release** — Complete codebase, benchmark data (Yamagata 144 cells + Akita 260 cells), pre-computed score files for all four learned methods on both prefectures (GLM-Logit, HierBayes, ET, TTM), and evaluation notebooks under Apache 2.0 and CC-BY 4.0 licenses.
 
@@ -351,7 +351,24 @@ substituted a Beta-Binomial seasonal approximation for HierBayes, so the layers
 labelled "Extra Trees" and "HierBayes" in the demo were not the methods the paper
 evaluated. That path has been removed.
 
-Outputs `maps/kumawatch_primary_layer.html` (~1 MB, all predictions embedded; Leaflet and OSM tiles load from their CDNs). Cell values are the released scores themselves, so the detail panel and the daily ranking are the paper's; only the colour tiers and the threshold slider apply a per-method 95th-percentile rescaling, which is a positive scalar divide and never reorders anything.
+Outputs `maps/kumawatch_primary_layer.html` (~2.3 MB). Every one of the 144 cells
+is stored for every one of the 365 days, so the daily rank runs over the full grid,
+any cell can be clicked, and widening the slider always reveals more cells.
+
+Cell values are the released scores themselves. How they are read differs by
+method, because only two of the four are calibrated probabilities:
+
+| Layer | Displayed as | Tiers cut on |
+|-------|--------------|--------------|
+| GLM-Logit, HierBayes | predicted probability (%) | the probability: ≥20% / 10–20% / 5–10% / below |
+| TTM, Extra Trees | raw score (3 dp) | the cell's rank that day: top 5 / 10 / 20 / rest |
+
+Extra Trees is strongly miscalibrated (BSS = −1.63) and its raw scores sit near
+1.0 for tens of cells a day, so presenting them as a risk percentage would
+overstate danger to a municipal user. TTM and ET therefore carry no probability
+wording. Earlier releases divided every layer by its 95th percentile and labelled
+the result as a percentage, which made a quiet January look as alarming as
+November; that rescaling is gone.
 
 ---
 

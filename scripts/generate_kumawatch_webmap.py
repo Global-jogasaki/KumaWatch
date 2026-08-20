@@ -230,7 +230,7 @@ hist_h30  = raw_counts_tr[-30:].sum(axis=0)
 
 # ─── 7. DAILY データ構築 ────────────────────────────────────────────────────
 print('[7] DAILY データ構築...', flush=True)
-INCLUDE_TOP_K = 40  # 各手法の上位 K セルを格納する (top-20 表示を厳密に保つ)
+# 全 144 セル × 365 日を格納する (足切りなし)
 grid_col_idx   = {gid: i for i, gid in enumerate(grid_cols)}
 
 daily_data = {}
@@ -242,18 +242,11 @@ for t, d in enumerate(test_dates):
     g_et   = et_scores[t]
     g_act  = test_actual[t]  # 実目撃数
 
-    # 格納するセルは**順位**で決める。各手法の上位 INCLUDE_TOP_K と、実際に
-    # 目撃があったセルを必ず含める。スコアの絶対値で足切りすると、その日の
-    # 上位セルでもスコアが小さいと落ち、マップ上の順位が論文のモデルと
-    # ずれてしまう (旧版はこれで top-20 一致率が 0.88 まで落ちていた)。
-    keep = set(np.flatnonzero(g_act > 0).tolist())
-    for arr in (g_glm, g_hbm, g_ttm, g_et):
-        keep.update(np.argpartition(-arr, INCLUDE_TOP_K)[:INCLUDE_TOP_K].tolist())
-
+    # 全 144 セルを格納する。足切りすると、その日の順位の分母が 144 でなく
+    # なり、閾値を下げても出てこないセルが生じ、クリックしても詳細が出ない。
+    # 論文・README の "all 144 Yamagata cells" とも食い違う。
     cells = {}
     for ci, gid in enumerate(grid_cols):
-        if ci not in keep:
-            continue
         glm_v = float(g_glm[ci])
         hb_v  = float(g_hbm[ci])
         ttm_v = float(g_ttm[ci])
@@ -424,26 +417,29 @@ body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d
     </div>
     <!-- 閾値 -->
     <div class="panel">
-      <div class="pt">表示閾値 — <span id="thr-val">15%</span></div>
-      <input type="range" id="thr-slider" min="1" max="50" value="15" step="1"
+      <div class="pt">表示セル数 — 上位 <span id="thr-val">20</span> / 144</div>
+      <input type="range" id="thr-slider" min="1" max="144" value="20" step="1"
              oninput="setThreshold(this.value)">
+      <div style="font-size:10px;color:#5a8a6a;margin-top:4px;line-height:1.5">
+        巡回できるセル数は限られる。既定の 20 は論文の評価予算 K=20 に対応する。</div>
     </div>
     <!-- 凡例 -->
     <div class="panel">
-      <div class="pt">リスクレベル</div>
-      <div class="leg-row"><div class="leg-box" style="background:#e81515"></div><span>緊急 (≥70%)</span></div>
-      <div class="leg-row"><div class="leg-box" style="background:#f06520"></div><span>高危険 (45–70%)</span></div>
-      <div class="leg-row"><div class="leg-box" style="background:#e0b800"></div><span>警戒 (20–45%)</span></div>
-      <div class="leg-row"><div class="leg-box" style="background:#28a030"></div><span>注意 (閾値–20%)</span></div>
-      <div class="leg-row"><div class="leg-box" style="background:#1a3820;border:1px dashed #2a5030"></div><span style="color:#4a7050">非表示 (閾値未満)</span></div>
+      <div class="pt">リスクレベル — <span id="leg-mode">予測確率</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#e81515"></div><span id="leg-0">緊急 (≥20%)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#f06520"></div><span id="leg-1">高危険 (10–20%)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#e0b800"></div><span id="leg-2">警戒 (5–10%)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#28a030"></div><span id="leg-3">注意 (5% 未満)</span></div>
+      <div class="leg-row"><div class="leg-box" style="background:#1a3820;border:1px dashed #2a5030"></div><span style="color:#4a7050">非表示 (上位 N 件外)</span></div>
+      <div id="leg-note" style="font-size:10px;color:#5a8a6a;margin-top:6px;line-height:1.5"></div>
     </div>
     <!-- デイリー統計 -->
     <div class="panel">
       <div class="pt">日次統計</div>
       <div class="stat-grid">
-        <div class="stat-item"><div class="stat-label">アクティブ</div><div class="stat-val" id="st-active">—</div></div>
+        <div class="stat-item"><div class="stat-label">表示セル</div><div class="stat-val" id="st-active">—</div></div>
         <div class="stat-item"><div class="stat-label">最高リスク</div><div class="stat-val" id="st-maxrisk">—</div></div>
-        <div class="stat-item"><div class="stat-label">緊急セル</div><div class="stat-val" id="st-alert">—</div></div>
+        <div class="stat-item"><div class="stat-label">最上位帯</div><div class="stat-val" id="st-alert">—</div></div>
         <div class="stat-item"><div class="stat-label">実目撃数</div><div class="stat-val" id="st-actual">—</div></div>
       </div>
     </div>
@@ -459,7 +455,7 @@ body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d
       <!-- 主層 -->
       <div class="dp-section">
         <div class="dp-section-title">主層 — GLM-Logit</div>
-        <div class="dp-row"><span class="dp-label">スコア</span><span class="dp-val" id="dp-glm">—</span></div>
+        <div class="dp-row"><span class="dp-label">予測確率</span><span class="dp-val" id="dp-glm">—</span></div>
         <div class="dp-row"><span class="dp-label">本日順位</span><span class="dp-val" id="dp-rank">—</span></div>
       </div>
       <!-- 不確実性層 -->
@@ -508,7 +504,7 @@ const DATES = Object.keys(DAILY).sort();
 let currentIdx = DATES.indexOf('2025-10-12');
 if (currentIdx < 0) currentIdx = 284;
 let currentLayer  = 'glm';
-let hideThreshold = 0.15;
+let showTopN = 20;
 let isPlaying     = false;
 let playTimer     = null;
 
@@ -523,19 +519,58 @@ const LAYER_NAMES = {{
 const IDX = {{glm:0, hb_m:1, ttm:2, et:3, act:4}};
 
 // Stored values are the released raw scores, so the detail panel and the daily
-// ranking are exactly the paper's. Colour tiers and the threshold slider work on
-// a per-method 95th-percentile rescaling — a positive scalar divide, so it never
-// reorders anything.
-const P95 = {p95_json};
-function disp(v, layer) {{ return v / (P95[layer] || 1); }}
+// ranking are exactly the paper's.
+//
+// GLM-Logit and HierBayes emit calibrated probabilities, so their tiers are cut
+// on the probability itself and labelled as percentages. TTM and Extra Trees do
+// not: ET in particular is strongly miscalibrated (BSS = -1.63), and its raw
+// values sit near 1.0 for tens of cells a day. Dressing those as "70% risk"
+// would overstate danger to a municipal user, so those two layers are tiered by
+// their rank within the day and carry no probability wording.
+const PROB_LAYERS = {{glm:1, hb:1}};
+const PROB_TIERS  = [0.20, 0.10, 0.05];   // 緊急 / 高危険 / 警戒
+const RANK_TIERS  = [5, 10, 20];          // Top 5 / Top 10 / Top 20
+
+function tierOf(rank, value, layer) {{
+  if (PROB_LAYERS[layer]) {{
+    if (value >= PROB_TIERS[0]) return 0;
+    if (value >= PROB_TIERS[1]) return 1;
+    if (value >= PROB_TIERS[2]) return 2;
+    return 3;
+  }}
+  if (rank <= RANK_TIERS[0]) return 0;
+  if (rank <= RANK_TIERS[1]) return 1;
+  if (rank <= RANK_TIERS[2]) return 2;
+  return 3;
+}}
+
+const TIER_STYLE = [
+  {{cls:'risk-alert', color:'#e81515'}},
+  {{cls:'risk-high',  color:'#f06520'}},
+  {{cls:'risk-mid',   color:'#e0b800'}},
+  {{cls:'risk-low',   color:'#28a030'}},
+];
+const TIER_LABEL_PROB = ['緊急', '高危険', '警戒', '注意'];
+const TIER_LABEL_RANK = ['上位5', '上位10', '上位20', 'それ以外'];
+
+function tierInfo(rank, value, layer) {{
+  const i = tierOf(rank, value, layer);
+  const lab = PROB_LAYERS[layer] ? TIER_LABEL_PROB[i] : TIER_LABEL_RANK[i];
+  return {{level:i, label:lab, cls:TIER_STYLE[i].cls, color:TIER_STYLE[i].color}};
+}}
+
+// Cells sorted by the active layer, best first. Rank is 1-based over all 144.
+function rankedCells(cells, layer) {{
+  return Object.entries(cells)
+    .sort((a, b) => layerScore(b[1], layer) - layerScore(a[1], layer));
+}}
+
+function fmtScore(v, layer) {{
+  return PROB_LAYERS[layer] ? (v * 100).toFixed(1) + '%' : v.toFixed(3);
+}}
 
 // ─── Risk level ──────────────────────────────────────────────────────────────
-function riskInfo(score) {{
-  if (score >= 0.70) return {{level:'alert', label:'緊急',   cls:'risk-alert', color:'#e81515'}};
-  if (score >= 0.45) return {{level:'high',  label:'高危険', cls:'risk-high',  color:'#f06520'}};
-  if (score >= 0.20) return {{level:'mid',   label:'警戒',   cls:'risk-mid',   color:'#e0b800'}};
-  return                     {{level:'low',  label:'注意',   cls:'risk-low',   color:'#28a030'}};
-}}
+
 
 function layerScore(cell, layer) {{
   if (!cell) return 0;
@@ -592,17 +627,20 @@ Object.entries(COORDS).forEach(([gid, c]) => {{
 function renderMap() {{
   const ds    = DATES[currentIdx];
   const cells = DAILY[ds] || {{}};
+  const order = rankedCells(cells, currentLayer);
+  const rankOf = {{}};
+  order.forEach(([gid], i) => {{ rankOf[gid] = i + 1; }});
   Object.entries(COORDS).forEach(([gid, c]) => {{
     const cell  = cells[gid];
-    const score = cell ? disp(layerScore(cell, currentLayer), currentLayer) : 0;
     const rect  = rects[gid];
     if (!rect) return;
-    if (score < hideThreshold) {{
+    const rank  = rankOf[gid] || 9999;
+    if (!cell || rank > showTopN) {{
       rect.setStyle({{fillOpacity:0, opacity:0}});
       const lm = labelMarkers[gid];
       if (lm) {{ const el = lm.getElement(); if (el) el.style.visibility = 'hidden'; }}
     }} else {{
-      const ri = riskInfo(score);
+      const ri = tierInfo(rank, layerScore(cell, currentLayer), currentLayer);
       rect.setStyle({{
         fillColor: ri.color, fillOpacity: 0.45,
         color:'#ffffff', opacity:0.80, weight:1.5
@@ -624,41 +662,36 @@ function updateSidebar() {{
   document.getElementById('day-info').textContent =
     '(' + dow + ')  表示レイヤー: ' + LAYER_NAMES[currentLayer];
 
-  // Stats
-  let active=0, alertCnt=0, totalAct=0, maxScore=0;
-  Object.values(cells).forEach(cell => {{
-    const s = disp(layerScore(cell, currentLayer), currentLayer);
-    if (s >= hideThreshold) active++;
-    if (disp(cell[IDX.glm], 'glm') >= 0.70) alertCnt++;
-    totalAct += cell[IDX.act];
-    if (cell[IDX.glm] > maxScore) maxScore = cell[IDX.glm];
+  // Stats — computed on the layer currently displayed
+  const order = rankedCells(cells, currentLayer);
+  let totalAct = 0, topTier = 0;
+  Object.values(cells).forEach(cell => {{ totalAct += cell[IDX.act]; }});
+  order.forEach(([gid, cell], i) => {{
+    if (tierOf(i + 1, layerScore(cell, currentLayer), currentLayer) === 0) topTier++;
   }});
-  const ri = riskInfo(disp(maxScore, 'glm'));
-  document.getElementById('st-active').textContent  = active;
+  const best = order.length
+    ? tierInfo(1, layerScore(order[0][1], currentLayer), currentLayer)
+    : {{cls:'risk-low', label:'—'}};
+  document.getElementById('st-active').textContent  = Math.min(showTopN, order.length);
   document.getElementById('st-maxrisk').innerHTML   =
-    '<span class="rank-badge ' + ri.cls + '">' + ri.label + '</span>';
-  document.getElementById('st-alert').textContent   = alertCnt;
+    '<span class="rank-badge ' + best.cls + '">' + best.label + '</span>';
+  document.getElementById('st-alert').textContent   = topTier;
   document.getElementById('st-actual').textContent  = totalAct;
 
-  // Ranking (always by GLM-Logit)
-  const ranked = Object.entries(cells)
-    .filter(([,c]) => disp(c[IDX.glm], 'glm') >= hideThreshold)
-    .sort((a,b) => b[1][IDX.glm] - a[1][IDX.glm])
-    .slice(0, 20);
-
+  // Ranking — the cells shown, in the active layer's order
   let html = '';
-  ranked.forEach(([gid, cell], i) => {{
+  order.slice(0, Math.min(showTopN, 20)).forEach(([gid, cell], i) => {{
     const city = (COORDS[gid] && COORDS[gid].city) || gid;
-    const s    = cell[IDX.glm];
-    const ri   = riskInfo(disp(s, 'glm'));
+    const s    = layerScore(cell, currentLayer);
+    const ri   = tierInfo(i + 1, s, currentLayer);
     html += `<div class="rank-row" onclick="showCellDetail('${{gid}}')">
       <span class="rank-no">${{i+1}}</span>
       <span class="rank-city" title="${{city}} [${{gid}}]">${{city}}</span>
       <span class="rank-badge ${{ri.cls}}">${{ri.label}}</span>
-      <span class="rank-pct">${{(s*100).toFixed(1)}}%</span>
+      <span class="rank-pct">${{fmtScore(s, currentLayer)}}</span>
     </div>`;
   }});
-  document.getElementById('rank-list').innerHTML = html || '<div style="color:#4a7050;font-size:11px;padding:6px 0">本日は閾値以上のセルなし</div>';
+  document.getElementById('rank-list').innerHTML = html || '<div style="color:#4a7050;font-size:11px;padding:6px 0">本日は表示対象のセルなし</div>';
 
   // Slider sync
   document.getElementById('day-slider').value = currentIdx;
@@ -679,12 +712,12 @@ function showCellDetail(gid) {{
   const ranked = Object.entries(cells)
     .sort((a,b) => b[1][IDX.glm] - a[1][IDX.glm]);
   const glmRank = ranked.findIndex(([g]) => g === gid) + 1;
-  document.getElementById('dp-glm').textContent  = cell[IDX.glm].toFixed(3);
+  document.getElementById('dp-glm').textContent  = (cell[IDX.glm]*100).toFixed(1) + '%';
   document.getElementById('dp-rank').textContent = '第' + glmRank + '位 / ' + ranked.length + '位中';
 
   // HierBayes
   const hbm = cell[IDX.hb_m];
-  document.getElementById('dp-hbm').textContent = hbm.toFixed(3);
+  document.getElementById('dp-hbm').textContent = (hbm*100).toFixed(1) + '%';
 
   // TTM / ET agrees
   const glmTop20 = ranked.slice(0, 20).map(([g]) => g);
@@ -701,8 +734,8 @@ function showCellDetail(gid) {{
   const ttmAgr = (glmIn === ttmIn);
   const etAgr  = (glmIn === etIn);
 
-  document.getElementById('dp-ttm').textContent = (cell[IDX.ttm]*100).toFixed(1) + '%';
-  document.getElementById('dp-et').textContent  = (cell[IDX.et]*100).toFixed(1)  + '%';
+  document.getElementById('dp-ttm').textContent = cell[IDX.ttm].toFixed(3);
+  document.getElementById('dp-et').textContent  = cell[IDX.et].toFixed(3);
   document.getElementById('dp-ttm-agree').innerHTML =
     ttmAgr ? '<span class="dp-agree">✓ agrees</span>' : '<span class="dp-disagree">✗ disagrees</span>';
   document.getElementById('dp-et-agree').innerHTML =
@@ -726,13 +759,33 @@ function closeDetail() {{
 function switchLayer(layer) {{
   currentLayer = layer;
   document.getElementById('layer-name').textContent = LAYER_NAMES[layer];
+  updateLegend();
   render();
+}}
+
+// The legend changes with the layer: GLM-Logit and HierBayes are cut on the
+// predicted probability, TTM and Extra Trees on the cell's rank that day.
+function updateLegend() {{
+  const prob = !!PROB_LAYERS[currentLayer];
+  const pct  = PROB_TIERS.map(v => (v * 100).toFixed(0));
+  const labs = prob
+    ? ['緊急 (≥' + pct[0] + '%)', '高危険 (' + pct[1] + '–' + pct[0] + '%)',
+       '警戒 (' + pct[2] + '–' + pct[1] + '%)', '注意 (' + pct[2] + '% 未満)']
+    : ['本日 上位' + RANK_TIERS[0], '上位' + RANK_TIERS[1], '上位' + RANK_TIERS[2],
+       'それ以外'];
+  for (let i = 0; i < 4; i++) document.getElementById('leg-' + i).textContent = labs[i];
+  document.getElementById('leg-mode').textContent = prob ? '予測確率' : '当日の相対順位';
+  document.getElementById('leg-note').textContent = prob
+    ? 'GLM-Logit と HierBayes の値は予測確率そのもの。'
+    : 'TTM と Extra Trees の生スコアは確率として較正されていない'
+      + '(Extra Trees の Brier Skill Score は −1.63)。確率としては読めないため、'
+      + '当日の順位で色分けしている。';
 }}
 
 // ─── Threshold ───────────────────────────────────────────────────────────────
 function setThreshold(val) {{
-  hideThreshold = val / 100;
-  document.getElementById('thr-val').textContent = val + '%';
+  showTopN = parseInt(val, 10);
+  document.getElementById('thr-val').textContent = showTopN;
   render();
 }}
 
@@ -784,6 +837,7 @@ function render() {{
 }}
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+updateLegend();
 render();
 // Highlight October button
 document.querySelectorAll('.mbtn')[9].classList.add('active');
