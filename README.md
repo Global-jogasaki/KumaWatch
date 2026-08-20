@@ -186,7 +186,7 @@ KumaWatch/
 │   ├── scores/                            # Pre-computed 2025 test-period scores
 │   │   ├── yamagata_glm_logit_scores_2025.npy   # GLM-Logit (365 × 144, float32)
 │   │   ├── yamagata_hier_mean_scores_2025.npy   # HierBayes posterior mean (365 × 144, float64)
-│   │   ├── yamagata_hier_std_scores_2025.npy    # HierBayes posterior std / confidence (365 × 144, float64)
+│   │   ├── yamagata_hier_std_scores_2025.npy    # HierBayes posterior std — from a different MCMC run; do not pair with the mean
 │   │   ├── yamagata_et_scores_2025.csv
 │   │   ├── yamagata_ttm_scores_2025.csv
 │   │   ├── yamagata_ttm_scores.npy        # NumPy binary format (365 × 144, float32)

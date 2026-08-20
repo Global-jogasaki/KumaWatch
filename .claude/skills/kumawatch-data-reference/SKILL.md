@@ -71,7 +71,7 @@ CSV は wide形式(`Date` + セル列、365行 = 2025-01-01〜2025-12-31)。NPY 
 |---------|-------|----|------|
 | `data/scores/yamagata_glm_logit_scores_2025.npy` | GLM-Logit | 山形 | (365,144) float32 |
 | `data/scores/yamagata_hier_mean_scores_2025.npy` | HierBayes 事後平均 | 山形 | (365,144) float64 |
-| `data/scores/yamagata_hier_std_scores_2025.npy` | HierBayes 事後標準偏差 | 山形 | (365,144) float64 |
+| `data/scores/yamagata_hier_std_scores_2025.npy` | HierBayes 事後標準偏差 ⚠️ **事後平均とは別実行。組み合わせて使わないこと** | 山形 | (365,144) float64 |
 | `data/scores/yamagata_et_scores_2025.csv` | Extra Trees | 山形 | 365×144 |
 | `data/scores/yamagata_ttm_scores_2025.csv` | IBM Granite TTM | 山形 | 365×144 |
 | `data/scores/yamagata_ttm_scores.npy` | IBM Granite TTM | 山形 | (365,144) float32 |

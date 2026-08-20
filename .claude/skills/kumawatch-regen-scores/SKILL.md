@@ -105,6 +105,10 @@ wide.reset_index().to_csv('data/scores/yamagata_ttm_scores_2025.csv', index=Fals
 
 生成物を `data/scores/` の対応ファイル名(`yamagata_glm_logit_scores_2025.npy` / `yamagata_hier_mean_scores_2025.npy` / `yamagata_hier_std_scores_2025.npy`)で配置する。
 
+⚠️ 事後平均と事後標準偏差は**必ず同一 trace から同時に**出力すること。現在公開中の std は
+過去の別実行のもので、公開中の事後平均とは対にならない。片方だけ差し替えると、
+両者を組み合わせた信頼区間・確信度がすべて無効になる。
+
 ## 再生成後の検証
 
 1. 形状確認: 山形 = (365, 144)、秋田 = (365, 260)。CSV は `Date` 列+セル列(`0_0` 形式)で365行

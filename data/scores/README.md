@@ -16,7 +16,7 @@ All CSV files are in **wide format**:
 |------|-------|-----------|-------|
 | `yamagata_glm_logit_scores_2025.npy` | GLM-Logit | Yamagata | (365, 144) float32 |
 | `yamagata_hier_mean_scores_2025.npy` | HierBayes (posterior mean) | Yamagata | (365, 144) float64 |
-| `yamagata_hier_std_scores_2025.npy` | HierBayes (posterior std) | Yamagata | (365, 144) float64 |
+| `yamagata_hier_std_scores_2025.npy` | HierBayes (posterior std) ⚠️ different run — see below | Yamagata | (365, 144) float64 |
 | `yamagata_et_scores_2025.csv` | Extra Trees | Yamagata | 365 × 144 |
 | `yamagata_ttm_scores_2025.csv` | IBM Granite TTM | Yamagata | 365 × 144 |
 | `yamagata_ttm_scores.npy` | IBM Granite TTM | Yamagata | (365, 144) float32 |
@@ -44,10 +44,22 @@ The Extra Trees files also reproduce the reported calibration figures
 (Yamagata Brier = 0.097, BSS = −1.63), and `yamagata_glm_logit_scores_2025.npy`
 reproduces the Precision@20 = 0.244 quoted in Section 6 of the paper (0.2446).
 
-`yamagata_hier_std_scores_2025.npy` is retained from an earlier MCMC run and does
-not pair with the posterior-mean file above. No reported result depends on it —
-it was used only for the confidence-filtered exploration that the final paper
-drops.
+### ⚠️ The HierBayes posterior standard deviation does not pair with the mean
+
+`yamagata_hier_std_scores_2025.npy` comes from an **earlier MCMC run** than
+`yamagata_hier_mean_scores_2025.npy`, which is the run the paper reports. The two
+are not draws from the same posterior.
+
+**Do not combine them.** A credible interval, a confidence signal or an
+uncertainty-stratified metric built from one run's mean and another run's spread
+is not a posterior summary of anything, and no such figure should be published.
+The web map therefore shows no credible interval, and the confidence-filtered
+analysis — which the 4-page final paper drops entirely — cannot be reproduced
+from these files. No reported result depends on the std file.
+
+To restore that analysis, re-emit the posterior mean and standard deviation
+together from a single trace; replacing only one of the two recreates the same
+problem.
 
 Cell columns in the ET files are ordered `row_col` and must be aligned to the
 sightings CSV **by column name**, not by position, since the two files use

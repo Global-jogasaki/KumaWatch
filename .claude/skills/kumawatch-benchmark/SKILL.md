@@ -83,9 +83,15 @@ CACHE_PATH = 'benchmark_output/glm_hier_cache.pkl'
 
 HierBayes の収束確認: R̂ < 1.01、divergent transitions = 0。
 
-## Table 3(信頼度フィルタ分析)
+## 信頼度フィルタ分析(現在は再現不可・最終版論文から削除済み)
 
-論文 Table 3(top-25%/50% 信頼度サブセットの Recall@20 と並べ替え検定)は別ノートブック **`notebooks/kumawatch_benchmark_table3_colab.ipynb`** を使う。事前計算済みの
-`data/scores/yamagata_glm_logit_scores_2025.npy` / `yamagata_hier_mean_scores_2025.npy` / `yamagata_hier_std_scores_2025.npy` を入力にするため MCMC の再実行は不要。
+**この分析は公開ファイルでは実行してはいけない。** 信頼度は事後標準偏差から求めるが、公開している
+`yamagata_hier_std_scores_2025.npy` は**事後平均ファイルとは別の MCMC 実行**のものである。
+別実行の平均と標準偏差を組み合わせて信頼区間や確信度を出すことは統計的に無効であり、
+その結果を掲載してはならない。
 
-期待値(山形): HierBayes top-50% Recall@20 = **0.639**(全日 0.542 から向上)、GLM-Logit top-25% = 0.889。
+4ページ最終版の論文はこの分析を丸ごと削除しており、依存する結果は存在しない。
+`notebooks/kumawatch_benchmark_table3_colab.ipynb` は当時の実行を保存したアーカイブとして残しているだけで、
+公開スコアで再実行する用途には使えない。
+
+実行するなら、事後平均と標準偏差を**同一 trace から出力し直す**ところから始めること。
