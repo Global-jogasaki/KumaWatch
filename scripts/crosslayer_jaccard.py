@@ -50,9 +50,10 @@ PREFECTURES = {
             "TTM":       REPO / "data" / "scores" / "yamagata_ttm_scores_2025.csv",
             "ET":        REPO / "data" / "scores" / "yamagata_et_scores_2025.csv",
         },
-        # Recall@20 reported in Table 1 of the paper, used by --check
-        "expected_r20": {"GLM-Logit": 0.547, "HierBayes": 0.542,
-                         "TTM": 0.492, "ET": 0.474},
+        # Recall@20 recomputed from these files; Table 1 reports the same
+        # values to three decimals. Used by --check.
+        "expected_r20": {"GLM-Logit": 0.5470, "HierBayes": 0.5425,
+                         "TTM": 0.4917, "ET": 0.4739},
     },
     "akita": {
         "sightings": REPO / "data" / "akita_10km_daily_timeseries.csv",
@@ -62,8 +63,8 @@ PREFECTURES = {
             "TTM":       REPO / "data" / "scores" / "akita_ttm_scores_2025.csv",
             "ET":        REPO / "data" / "scores" / "akita_et_scores_2025.csv",
         },
-        "expected_r20": {"GLM-Logit": 0.454, "HierBayes": 0.431,
-                         "TTM": 0.395, "ET": 0.326},
+        "expected_r20": {"GLM-Logit": 0.4543, "HierBayes": 0.4316,
+                         "TTM": 0.3950, "ET": 0.3258},
     },
 }
 
@@ -145,10 +146,12 @@ def run(prefecture, k_values, as_markdown, check):
         ok = True
         for name, expected in cfg["expected_r20"].items():
             got = recall_at_k(scores[name], labels, 20)
-            hit = abs(got - expected) <= 0.001
+            # 0.001 would let the superseded GLM-Logit file (0.5460 against
+            # 0.5470) pass, so the check is tighter than the reporting precision.
+            hit = abs(got - expected) <= 0.0005
             ok &= hit
             print(f"  [{'OK' if hit else 'NG'}] {name:10s} "
-                  f"computed={got:.4f}  paper={expected:.3f}")
+                  f"computed={got:.4f}  expected={expected:.4f}")
         print("  all methods match" if ok else
               "  WARNING: score files do not match the reported Recall@20")
 

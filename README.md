@@ -34,7 +34,7 @@ Human–bear conflicts in northern Japan have escalated sharply, with **publicly
 
 We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day held-out year (2025), with measured per-day computational cost — fitting, refitting or inference as applicable — reported alongside each predictive-performance estimate.
 
-In the benchmark itself each learned method is fitted once on data through 2024-12-31 and then scores all 365 evaluation days; the cost column states what one day of operation would cost a municipality that refreshed the model on that cadence, which is the quantity a procurement decision turns on.
+In the benchmark itself each trainable method is fitted once on data through 2024-12-31, while TTM is applied zero-shot; all methods then produce scores for the 365 evaluation days. The cost column states what one day of operation would cost a municipality that refreshed the model on that cadence, which is the quantity a procurement decision turns on.
 
 **Central finding (negative and procurement-relevant):** IBM Granite TTM requires ~4 hours of API inference per day and, on Yamagata, is significantly *worse* than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0004). On Akita it also trails the static prior, but not significantly (Δ = −0.010, *p* = 0.364). A 30-minute MCMC pipeline (HierBayes) yields no Recall@20 improvement over a sub-30-second logistic regression on Yamagata (*p* = 0.624) and is significantly worse on Akita (*p* = 0.003). On Yamagata — the primary evaluation setting — GLM-Logit's margin over the static prior B1 does not approach significance (+0.014, *p* = 0.155).
 

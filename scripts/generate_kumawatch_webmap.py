@@ -50,7 +50,7 @@ RAND_SEED   = 42
 # 論文 Table 1 の Recall@20。埋め込み前の検査に使う。
 PAPER_R20 = {'GLM-Logit': 0.5470, 'HierBayes': 0.5425,
              'TTM': 0.4917, 'ET': 0.4739}
-R20_TOL   = 0.001
+R20_TOL   = 0.0005   # 0.001 だと旧 GLM ファイル (0.5460 vs 0.5470) が通ってしまう
 N_DAYS_EXPECTED  = 365
 N_CELLS_EXPECTED = 144
 
@@ -151,35 +151,9 @@ if not verify_scores(raw, test_L):
     raise SystemExit('検査に失敗した。論文と異なるスコアを埋め込まないため中止する。')
 print('    検査通過 — 論文 Table 1 と同一のスコアを埋め込む')
 
-# ─── 4. 表示用スケーリング ───────────────────────────────────────────────────
-# 生の確率は分布が 0 付近に密集するため、そのままではリスク帯 (20/45/70%) に
-# ほとんど乗らない。手法ごとに正の値の 95 パーセンタイルで割って表示範囲を
-# 揃える。**正のスカラー除算のみで、クリップはしない**ので、各手法内の順位は
-# 生スコアと完全に一致する。表示値は確率ではなく正規化リスク指標である。
-print('[4] 表示用スケーリング (順位を保つ正規化)...', flush=True)
-
-
-def normalize_preserving_rank(scores, pct=95):
-    pos = scores[scores > 0]
-    if len(pos) == 0:
-        return scores
-    p = float(np.percentile(pos, pct))
-    return (scores / p).astype(np.float32) if p > 0 else scores
-
-
-P95 = {}
-for name, arr in raw.items():
-    scaled = normalize_preserving_rank(arr)
-    assert abs(recall_at_k(arr, test_L) - recall_at_k(scaled, test_L)) < 1e-9, \
-        f'{name}: 表示用スケーリングで順位が変化した'
-    pos = arr[arr > 0]
-    P95[name] = float(np.percentile(pos, 95)) if len(pos) else 1.0
-    print(f'    {name:10s} p95 = {P95[name]:.5f}  '
-          f'表示レンジ [0, {arr.max() / P95[name]:.2f}]  (順位不変)')
-
-# HTML には**生スコアをそのまま**埋め込む。詳細パネルに出る数値は論文の
-# スコアそのもので、順位もそれに一致する。色分けと閾値スライダーだけが
-# p95 で割った値を使う (正のスカラー除算なので順位は変わらない)。
+# HTML には**生スコアをそのまま**埋め込む。詳細パネルの数値も日次順位も
+# 論文のスコアそのものになる。色分けは JS 側で手法ごとに決める:
+# GLM-Logit と HierBayes は確率で、TTM と Extra Trees は当日の順位で。
 glm_scores = raw['GLM-Logit']
 hb_mean    = raw['HierBayes']
 ttm_scores = raw['TTM']
@@ -283,10 +257,6 @@ print(f'    COORDS: {len(coords_dict)} grids')
 print('[8] JSON シリアライズ...', flush=True)
 DAILY_JSON  = json.dumps(daily_data,  ensure_ascii=False, separators=(',', ':'))
 COORDS_JSON = json.dumps(coords_dict, ensure_ascii=False, separators=(',', ':'))
-p95_json = json.dumps({'glm': round(P95['GLM-Logit'], 6),
-                       'hb':  round(P95['HierBayes'], 6),
-                       'ttm': round(P95['TTM'], 6),
-                       'et':  round(P95['ET'], 6)}, separators=(',', ':'))
 print(f'    DAILY_JSON  : {len(DAILY_JSON)/1024:.0f} KB')
 print(f'    COORDS_JSON : {len(COORDS_JSON)/1024:.0f} KB')
 
@@ -515,7 +485,7 @@ const LAYER_NAMES = {{
   et:  'Extra Trees スコア',
 }};
 // Cell data indices: [glm, hb_m, ttm, et, act]
-// All four are rank-preserving normalisations of the released score files.
+// Values are the released raw scores, unmodified.
 const IDX = {{glm:0, hb_m:1, ttm:2, et:3, act:4}};
 
 // Stored values are the released raw scores, so the detail panel and the daily
