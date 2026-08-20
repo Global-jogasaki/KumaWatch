@@ -32,7 +32,7 @@ Human–bear conflicts in northern Japan have escalated sharply, with **publicly
 
 ## Abstract
 
-We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day held-out year (2025), with measured daily inference cost beside every accuracy figure.
+We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day held-out year (2025), with measured computational cost reported alongside each predictive-performance estimate.
 
 **Central finding (negative and procurement-relevant):** IBM Granite TTM requires ~4 hours of API inference per day and is significantly *worse* than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0004). A 30-minute MCMC pipeline (HierBayes) yields no Recall@20 improvement over a sub-30-second logistic regression on Yamagata (*p* = 0.624) and is significantly worse on Akita (*p* = 0.003). On Yamagata — the primary evaluation setting — GLM-Logit's margin over the static prior B1 does not approach significance (+0.014, *p* = 0.155).
 
@@ -42,7 +42,7 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 ## Key Contributions
 
-1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day held-out windows across two prefectures, with measured daily inference cost beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
+1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day held-out windows across two prefectures, with measured daily computational cost (training, refitting, and inference) beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
 
 2. **Negative result with operational reading** — Neither foundation-model inference (~4 h/day) nor MCMC (~30 min/day) buys top-K accuracy over far cheaper alternatives. On Yamagata, GLM-Logit's lead over the static prior is not significant (*p* = 0.155). Extra Trees is strongly miscalibrated (BSS = −1.63). These are null results about ranking only; downstream uses of HierBayes posterior variance and ET environmental covariates are untested rather than refuted.
 
@@ -58,15 +58,14 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 | Method | Recall@10 | Recall@20 | Recall@30 | Significance vs GLM-Logit (Recall@20) |
 |--------|:---------:|:---------:|:---------:|---------------------------------------|
-| **GLM-Logit** (Primary) | 0.345 | **0.547** | 0.690 | — |
-| HierBayes (top-50% conf. days) | — | **0.639** | — | — (uncertainty layer; different metric) |
-| HierBayes (all days) | 0.329 | 0.542 | 0.694 | ns (p = 0.624) |
+| **GLM-Logit** (best-ranked) | 0.345 | **0.547** | 0.692 | — |
+| HierBayes | 0.329 | 0.542 | 0.697 | ns (p = 0.624) |
 | B5: Recent MA + Seasonality | 0.333 | 0.534 | 0.660 | ns (p = 0.310) |
 | B1: Static Prior | 0.286 | 0.533 | 0.659 | ns (p = 0.155) |
-| B4: Static Prior + Seasonality | 0.315 | 0.523 | 0.653 | — |
+| B4: Static Prior + Seasonality | 0.320 | 0.517 | 0.644 | — |
 | **TTM** (IBM Granite 1536-96-R2) | 0.291 | 0.492 | 0.620 | sig. (p < 0.001) |
 | B2: Recent Moving Average | 0.311 | 0.486 | 0.607 | — |
-| B3: DoY Seasonality | 0.306 | 0.475 | 0.591 | — |
+| B3: DoY Seasonality | 0.305 | 0.475 | 0.587 | — |
 | **Extra Trees** | 0.293 | 0.474 | 0.607 | sig. (p < 0.001) |
 | B0: Random | 0.060 | 0.126 | 0.186 | — |
 | Poisson-GLM | 0.020 | 0.027 | 0.029 | — |
@@ -75,21 +74,21 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 | Method | Recall@10 | Recall@20 | Recall@30 | Significance vs GLM-Logit (Recall@20) |
 |--------|:---------:|:---------:|:---------:|---------------------------------------|
-| **GLM-Logit** (Primary) | 0.259 | **0.454** | 0.587 | — |
-| HierBayes (all days) | 0.262 | 0.431 | 0.577 | sig. (p = 0.003) |
+| **GLM-Logit** (best-ranked) | 0.259 | **0.454** | 0.587 | — |
+| HierBayes | 0.262 | 0.431 | 0.577 | sig. (p = 0.003) |
 | B5: Recent MA + Seasonality | 0.261 | 0.427 | 0.568 | ns (p = 0.043, above the Bonferroni-corrected α = 0.0038) |
 | B2: Recent Moving Average | 0.265 | 0.418 | 0.538 | — |
-| B4: Static Prior + Seasonality | 0.244 | 0.417 | 0.541 | — |
+| B4: Static Prior + Seasonality | 0.240 | 0.418 | 0.541 | — |
 | B1: Static Prior | 0.251 | 0.405 | 0.530 | sig. (p < 0.001) |
 | **TTM** (IBM Granite 512-96-R2) | 0.227 | 0.395 | 0.516 | sig. (p < 0.001) |
-| B3: DoY Seasonality | 0.216 | 0.352 | 0.451 | — |
+| B3: DoY Seasonality | 0.215 | 0.352 | 0.451 | — |
 | **Extra Trees** | 0.183 | 0.326 | 0.470 | sig. (p < 0.001) |
 | B0: Random | 0.047 | 0.080 | 0.114 | — |
 | Poisson-GLM | 0.003 | 0.003 | 0.003 | — |
 
 *Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.155); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. TTM is significantly worse than B1 (Δ = −0.041, p = 0.0004). GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures.*
 
-*Recall@10 and Recall@30 values are taken from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs). For HierBayes, MCMC sampling introduces slight run-to-run variation: the archived run gives Recall@20 = 0.545 (Yamagata), while the paper reports 0.542; the Recall@10/30 columns report the archived-run values alongside the paper's Recall@20.*
+*Each row reports a single run per method; no row mixes results from different runs. GLM-Logit and HierBayes Recall@K are recomputed from the released score files in `data/scores/` (`yamagata_glm_logit_scores_2025.npy`, SHA-256 `999e119c167fc22d…`; `yamagata_hier_mean_scores_2025.npy`, SHA-256 `af7b177712a1fa89…`); the released HierBayes file reproduces the paper's Recall@20 = 0.542 exactly, so no MCMC run-to-run mixing remains. Baselines B0–B5 are regenerated deterministically from `notebooks/kumawatch_benchmark.ipynb` Cell 5 (`RAND_SEED = 42`) over the documented training windows (Yamagata from 2018-10-01, Akita from 2022-04-01). TTM Recall@K is recomputed from the released TTM score CSVs. Extra Trees and Poisson-GLM Recall@K are carried over from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs). One residual discrepancy: the released GLM-Logit score file yields Recall@20 = 0.546 (Yamagata), while the paper reports 0.547; the table keeps the paper's value, and the ±0.001 gap is not resolved by tie-breaking or float64 promotion.*
 
 ### Confidence-Filtered Recall@20 (Yamagata — days ranked by prediction confidence)
 
@@ -102,7 +101,7 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | B1 | 1.000 | 0.592 | 0.544 | 0.533 |
 | B2 | 0.150 | 0.416 | 0.458 | 0.486 |
 
-*HierBayes exceeds GLM-Logit at the top-50% confidence subset (0.639 vs 0.619). This exploratory analysis concerns subsets of days ranked by prediction confidence and does not validate cell-level uncertainty for graduated alerts; our benchmark scores ranking under a fixed patrol budget only, and does not evaluate those downstream uses. B1's top-25% = 1.000 is a degenerate artifact: constant confidence scores cause argsort tie-breaking to select winter days, which have few valid sighting days — not evidence of genuine uncertainty quantification.*
+*The columns other than "All days" are computed on selected subsets of days and are **not** comparable with the all-days figures in the main results tables above; this table is reported separately for that reason. HierBayes exceeds GLM-Logit at the top-50% confidence subset (0.639 vs 0.619). This exploratory analysis concerns subsets of days ranked by prediction confidence and does not validate cell-level uncertainty for graduated alerts; our benchmark scores ranking under a fixed patrol budget only, and does not evaluate those downstream uses. B1's top-25% = 1.000 is a degenerate artifact: constant confidence scores cause argsort tie-breaking to select winter days, which have few valid sighting days — not evidence of genuine uncertainty quantification.*
 
 ### Calibration Metrics
 
@@ -131,27 +130,31 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 ## System Architecture
 
+The roles below are **candidate** operational roles represented in the prototype; their downstream effectiveness has not been validated by this ranking benchmark.
+
 ```
-KumaWatch — Three-Layer Alert System:
+KumaWatch — Prototype Architecture and Candidate Method Roles:
 
-  PRIMARY LAYER     GLM-Logit
-  ─────────────     L2-regularized logistic regression (C=1.0, max_iter=2000)
+  BEST-RANKED       GLM-Logit
+  METHOD            L2-regularized logistic regression (C=1.0, max_iter=2000)
                     Features: cell fixed effects + rolling30 + log(recent365+1) + sin/cos(DOY) + year_idx
-                    Output: daily probability scores per cell → Precision@K / Recall@K alerts
+                    Output: daily probability scores per cell → Precision@K / Recall@K ranking
 
-  UNCERTAINTY       HierBayes
-  LAYER             Hierarchical Bayesian Poisson (PyMC + NumPyro NUTS)
-                    2 chains × 1500 draws (500 tune + 1000 retain)
+  CANDIDATE         HierBayes
+  UNCERTAINTY       Hierarchical Bayesian Poisson (PyMC + NumPyro NUTS)
+  SIGNAL            2 chains × 1500 draws (500 tune + 1000 retain)
                     target_accept=0.9, random_seed=42, R̂ < 1.01, zero divergent transitions
-                    Output: posterior predictive distributions → graduated alert strategy
+                    Output: posterior predictive distributions → candidate confidence
+                            signal for future study
 
-  COMPLEMENTARY     TTM (IBM Granite Tiny Time Mixers)  +  Extra Trees
-  LAYER             TTM 1536-96-R2 (Yamagata) / 512-96-R2 (Akita), zero-shot in-context learning
+  ALTERNATIVE       TTM (IBM Granite Tiny Time Mixers)  +  Extra Trees
+  METHODS           TTM 1536-96-R2 (Yamagata) / 512-96-R2 (Akita), zero-shot in-context learning
                     Extra Trees: Nakamoto & Fukazawa [2025] reimplementation
-                    Output: independent risk rankings → cross-validation / auditability
+                    Output: alternative risk rankings → disagreement analysis;
+                            useful complementarity not established
 
   VISUALIZATION     Interactive web map (Leaflet.js)
-                    10 km grid overlay, 365-day playback, per-layer toggle
+                    10 km grid overlay, 365-day playback, per-method toggle
 ```
 
 **Grid Definition**: Each prefecture is partitioned into a grid of ~10 km × 10 km cells:
@@ -209,7 +212,9 @@ KumaWatch/
 | Yamagata bear sightings | Yamagata, Japan | 2018-10-01 – 2024-12-31 | 2025-01-01 – 2025-12-31 | 144 | Daily |
 | Akita bear sightings | Akita, Japan | 2022-04-01 – 2024-12-31 | 2025-01-01 – 2025-12-31 | 260 | Daily |
 
-Strict temporal separation: all 365 days of 2025 are held out as the test set. No test-period data is used in model training or feature computation.
+Strict temporal separation for model fitting: **all model fitting uses data through 2024-12-31 only**, and all 365 days of 2025 are held out as the test set.
+
+Evaluation is **sequential one-day-ahead forecasting**. For a forecast date *d* in 2025, recency features (`rolling30`, `log(recent365+1)`, and the moving averages behind B2/B5) are computed from sightings observed strictly before *d*, which from late January 2025 onward consist entirely of test-period observations. No observation on or after the forecast date is ever used, and no model coefficients are refit on test-period data. This is the standard sequential-forecasting setup, not label leakage — but note that it does mean test-period observations enter feature computation, which affects GLM-Logit, Poisson-GLM, HierBayes, B2 and B5. B0, B1, B3 and B4 use training-period data only.
 
 Data source: Yamagata and Akita prefectural wildlife observation databases (publicly available).
 
@@ -328,8 +333,7 @@ Outputs `kumawatch_map_2025.html` (self-contained, ~1.5 MB). Requires pre-comput
                Advances in Geographic Information Systems (SIGSPATIAL '26)},
   year      = {2026},
   address   = {Riverside, CA, USA},
-  month     = {November},
-  note      = {[Applications]}
+  month     = {November}
 }
 ```
 
@@ -354,4 +358,4 @@ The author gratefully acknowledges **Prof. Yusuke Fukazawa and Mr. Shin Nakamoto
 
 ---
 
-*Paper submitted to ACM SIGSPATIAL 2026 — Applications Track*
+*Accepted as a short paper in the Applications Track of ACM SIGSPATIAL 2026; camera-ready version in preparation.*
