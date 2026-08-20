@@ -37,11 +37,18 @@ paper and in the top-level README:
 | `akita_et_scores_2025.csv` | 0.1829 | 0.3258 | 0.4698 | `569cebe6df15c667` |
 | `akita_glm_logit_scores_2025.npy` | 0.2590 | 0.4543 | 0.5868 | `a9b078c5217e4c20` |
 | `akita_hier_mean_scores_2025.npy` | 0.2630 | 0.4316 | 0.5777 | `7dc7fe0b7837abdf` |
+| `yamagata_glm_logit_scores_2025.npy` | 0.3448 | 0.5470 | 0.6904 | `2de6593f4169b98e` |
+| `yamagata_hier_mean_scores_2025.npy` | 0.3292 | 0.5416 | 0.6969 | `af7b177712a1fa89` |
 
 The Extra Trees files also reproduce the reported calibration figures
-(Yamagata Brier = 0.097, BSS = −1.63). Cell columns in the ET files are ordered
-`row_col` and must be aligned to the sightings CSV **by column name**, not by
-position, since the two files use different column orderings.
+(Yamagata Brier = 0.097, BSS = −1.63), and `yamagata_glm_logit_scores_2025.npy`
+reproduces the Precision@20 = 0.244 quoted in Section 6 of the paper (0.2446).
+
+Cell columns in the ET files are ordered `row_col` and must be aligned to the
+sightings CSV **by column name**, not by position, since the two files use
+different column orderings. The `.npy` files carry no labels: their rows are the
+365 evaluation days in ascending date order and their columns follow the cell
+order of the corresponding sightings CSV.
 
 ## How to Use
 
