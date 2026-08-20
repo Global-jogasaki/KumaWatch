@@ -1,36 +1,58 @@
 """
 KumaWatch Web Decision Support Map Generator
 =============================================
-三層アーキテクチャ対応の包括的な意思決定支援マップを生成する。
+公開済みスコアファイルから意思決定支援マップを生成する。
 
-[主層]    GLM-Logit 予測確率 (0-1 probability)
-[不確実性層] HierBayes Beta-Binomial seasonal 近似 (posterior mean + 95% CI)
-[補完層]   TTM + Extra Trees (pre-computed scores, normalized to 0-1)
+表示する 4 手法は、いずれも論文 Table 1 を生成したスコアそのものを
+`data/scores/` から読み込む。**マップ生成時にモデルを学習し直さない。**
 
-Paper: KumaWatch: A Multi-Method Wildlife Encounter Alert System for
-       Operational Municipal Deployment in Northern Japan [Applications]
+  GLM-Logit  yamagata_glm_logit_scores_2025.npy   (Recall@20 = 0.5470)
+  HierBayes  yamagata_hier_mean_scores_2025.npy   (Recall@20 = 0.5425)
+  TTM        yamagata_ttm_scores_2025.csv         (Recall@20 = 0.4917)
+  ET         yamagata_et_scores_2025.csv          (Recall@20 = 0.4739)
+
+以前の版はマップ生成時に GLM-Logit と Extra Trees をその場で学習し、
+HierBayes を Beta-Binomial 季節近似で代用していた。ET は環境・人口・
+土地被覆の共変量を持たず、HierBayes は階層ベイズですらなかったため、
+デモに表示される「Extra Trees」「HierBayes」は論文で評価した手法とは
+別物だった。本版はその再学習経路を削除している。
+
+埋め込み直前に verify_scores() が Recall@20・日数・セル数・列整列を
+検査し、1 つでも論文値から外れれば HTML を出力せず異常終了する。
+
+Paper: KumaWatch: Benchmarking Wildlife Encounter Prediction for
+       Municipal Decision Support in Northern Japan
        ACM SIGSPATIAL 2026
 """
 
 import sys, re, json, csv
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from scipy.sparse import csr_matrix, hstack as sp_hstack
-from scipy.stats import beta as beta_dist
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import ExtraTreesClassifier
 
 # ─── パス設定 ───────────────────────────────────────────────────────────────
-BASE = r'F:\SSD-PGU3\電動モビリティ専門職大学\山形大学申請'
-SIGHTINGS_CSV = BASE + r'\山形県データ\Yamagata_10km_AllGrid_144cells_Daily_TimeSeries.csv'
-GRID_CSV      = BASE + r'\山形県データ\Yamagata_10km_Grid_0.csv'
-TTM_SCORES_CSV = BASE + r'\山形県データ\yamagata_ttm_scores_2025.csv'
-OUT_HTML       = BASE + r'\ACM-Application Track\kumawatch_map_2025.html'
+REPO   = Path(__file__).resolve().parent.parent
+SCORES = REPO / 'data' / 'scores'
+
+SIGHTINGS_CSV = REPO / 'data' / 'yamagata_10km_daily_timeseries.csv'
+GRID_CSV      = REPO / 'data' / 'yamagata_10km_grid_coords.csv'
+GLM_SCORES_NPY = SCORES / 'yamagata_glm_logit_scores_2025.npy'
+HB_SCORES_NPY  = SCORES / 'yamagata_hier_mean_scores_2025.npy'
+TTM_SCORES_CSV = SCORES / 'yamagata_ttm_scores_2025.csv'
+ET_SCORES_CSV  = SCORES / 'yamagata_et_scores_2025.csv'
+OUT_HTML       = REPO / 'maps' / 'kumawatch_primary_layer.html'
 
 TRAIN_START = '2018-10-01'; TRAIN_END = '2024-12-31'
 TEST_START  = '2025-01-01'; TEST_END  = '2025-12-31'
-GLM_C       = 1.0
 RAND_SEED   = 42
+
+# 論文 Table 1 の Recall@20。埋め込み前の検査に使う。
+PAPER_R20 = {'GLM-Logit': 0.5470, 'HierBayes': 0.5425,
+             'TTM': 0.4917, 'ET': 0.4739}
+R20_TOL   = 0.001
+N_DAYS_EXPECTED  = 365
+N_CELLS_EXPECTED = 144
 
 # ─── 1. データ読み込み ───────────────────────────────────────────────────────
 print('[1] データ読み込み...', flush=True)
@@ -53,147 +75,117 @@ T_tr, T_te   = len(train_dates), len(test_dates)
 print(f'    訓練: {train_dates[0].date()} - {train_dates[-1].date()} ({T_tr}日)')
 print(f'    評価: {test_dates[0].date()} - {test_dates[-1].date()} ({T_te}日)')
 
-# ─── 2. TTM スコア読み込み ───────────────────────────────────────────────────
-print('[2] TTM スコア読み込み...', flush=True)
+# ─── 2. 公開スコアの読み込みと検査 ───────────────────────────────────────────
+print('[2] 公開スコア読み込み (再学習なし)...', flush=True)
+
 
 def load_score_csv(path, grid_cols, test_dates):
+    """CSV スコアを (T_te, n_cells) で読む。列は**名称で整列**する。
+
+    ET の CSV は sightings CSV と列順が異なるため、位置で揃えるとグリッドが
+    黙って入れ替わる。欠損列があれば例外にする。
+    """
     df = pd.read_csv(path)
     df['_dt'] = pd.to_datetime(df['Date'], format='mixed')
     df = df.set_index('_dt').sort_index()
-    return df.reindex(test_dates)[grid_cols].fillna(0).values.astype(np.float32)
+    missing = [c for c in grid_cols if c not in df.columns]
+    if missing:
+        raise SystemExit(f'{path.name}: セル列が {len(missing)} 個不足 '
+                         f'(先頭: {missing[:3]})')
+    out = df.reindex(test_dates)[grid_cols]
+    if out.isna().any().any():
+        raise SystemExit(f'{path.name}: 評価期間の日付が欠落している')
+    return out.values.astype(np.float32)
 
-ttm_raw = load_score_csv(TTM_SCORES_CSV, grid_cols, test_dates)
-print(f'    TTM raw scores: {ttm_raw.shape}, range [{ttm_raw.min():.4f}, {ttm_raw.max():.4f}]')
 
-# 正規化 (95パーセンタイルを 1.0 に)
-def normalize_to_unit(scores, pct=95):
+def load_score_npy(path, n_days, n_cells):
+    arr = np.load(path).astype(np.float32)
+    if arr.shape != (n_days, n_cells):
+        raise SystemExit(f'{path.name}: 形状 {arr.shape} は '
+                         f'{(n_days, n_cells)} と一致しない')
+    return arr
+
+
+raw = {
+    'GLM-Logit': load_score_npy(GLM_SCORES_NPY, T_te, n_cells),
+    'HierBayes': load_score_npy(HB_SCORES_NPY,  T_te, n_cells),
+    'TTM':       load_score_csv(TTM_SCORES_CSV, grid_cols, test_dates),
+    'ET':        load_score_csv(ET_SCORES_CSV,  grid_cols, test_dates),
+}
+for name, arr in raw.items():
+    print(f'    {name:10s} {arr.shape}  範囲 [{arr.min():.4f}, {arr.max():.4f}]')
+
+# ─── 3. 埋め込み前の検査 ─────────────────────────────────────────────────────
+print('[3] 検査 (Recall@20 / 日数 / セル数 / 列整列)...', flush=True)
+
+
+def recall_at_k(scores, labels, k=20):
+    topk = np.argpartition(-scores, k, axis=1)[:, :k]
+    hits = np.take_along_axis(labels.astype(np.int32), topk, axis=1).sum(axis=1)
+    npos = labels.sum(axis=1)
+    valid = npos > 0
+    return float((hits[valid] / npos[valid]).mean())
+
+
+def verify_scores(raw, labels):
+    ok = True
+    if T_te != N_DAYS_EXPECTED:
+        print(f'    [NG] 日数 {T_te} != {N_DAYS_EXPECTED}'); ok = False
+    else:
+        print(f'    [OK] 日数 {T_te}')
+    if n_cells != N_CELLS_EXPECTED:
+        print(f'    [NG] セル数 {n_cells} != {N_CELLS_EXPECTED}'); ok = False
+    else:
+        print(f'    [OK] セル数 {n_cells}')
+    for name, arr in raw.items():
+        got = recall_at_k(arr, labels)
+        ref = PAPER_R20[name]
+        hit = abs(got - ref) <= R20_TOL
+        ok &= hit
+        print(f'    [{"OK" if hit else "NG"}] {name:10s} Recall@20 = {got:.4f} '
+              f'(論文 {ref:.4f})')
+    return ok
+
+
+if not verify_scores(raw, test_L):
+    raise SystemExit('検査に失敗した。論文と異なるスコアを埋め込まないため中止する。')
+print('    検査通過 — 論文 Table 1 と同一のスコアを埋め込む')
+
+# ─── 4. 表示用スケーリング ───────────────────────────────────────────────────
+# 生の確率は分布が 0 付近に密集するため、そのままではリスク帯 (20/45/70%) に
+# ほとんど乗らない。手法ごとに正の値の 95 パーセンタイルで割って表示範囲を
+# 揃える。**正のスカラー除算のみで、クリップはしない**ので、各手法内の順位は
+# 生スコアと完全に一致する。表示値は確率ではなく正規化リスク指標である。
+print('[4] 表示用スケーリング (順位を保つ正規化)...', flush=True)
+
+
+def normalize_preserving_rank(scores, pct=95):
     pos = scores[scores > 0]
-    if len(pos) == 0: return scores
+    if len(pos) == 0:
+        return scores
     p = float(np.percentile(pos, pct))
-    if p == 0: return scores
-    return np.clip(scores / p, 0.0, 1.0).astype(np.float32)
+    return (scores / p).astype(np.float32) if p > 0 else scores
 
-ttm_scores = normalize_to_unit(ttm_raw)
-print(f'    TTM normalized: [{ttm_scores.min():.4f}, {ttm_scores.max():.4f}]')
 
-# ─── 3. GLM-Logit 訓練 ──────────────────────────────────────────────────────
-print('[3] GLM-Logit 訓練中...', flush=True)
-all_L = np.concatenate([train_L, test_L], axis=0).astype(np.float64)
-cs    = np.zeros((len(all_L) + 1, n_cells), dtype=np.float64)
-np.cumsum(all_L, axis=0, out=cs[1:])
+P95 = {}
+for name, arr in raw.items():
+    scaled = normalize_preserving_rank(arr)
+    assert abs(recall_at_k(arr, test_L) - recall_at_k(scaled, test_L)) < 1e-9, \
+        f'{name}: 表示用スケーリングで順位が変化した'
+    pos = arr[arr > 0]
+    P95[name] = float(np.percentile(pos, 95)) if len(pos) else 1.0
+    print(f'    {name:10s} p95 = {P95[name]:.5f}  '
+          f'表示レンジ [0, {arr.max() / P95[name]:.2f}]  (順位不変)')
 
-def rolling_sum(pos, window):
-    return (cs[pos] - cs[max(0, pos - window)]).astype(np.float32)
+# HTML には**生スコアをそのまま**埋め込む。詳細パネルに出る数値は論文の
+# スコアそのもので、順位もそれに一致する。色分けと閾値スライダーだけが
+# p95 で割った値を使う (正のスカラー除算なので順位は変わらない)。
+glm_scores = raw['GLM-Logit']
+hb_mean    = raw['HierBayes']
+ttm_scores = raw['TTM']
+et_scores  = raw['ET']
 
-base_year = train_dates[0].year
 
-def make_block(dates, offset):
-    T = len(dates)
-    r30 = np.empty((T, n_cells), np.float32)
-    r365= np.empty((T, n_cells), np.float32)
-    sin_= np.empty(T, np.float32)
-    cos_= np.empty(T, np.float32)
-    yr_ = np.empty(T, np.float32)
-    for i, d in enumerate(dates):
-        pos = offset + i
-        r30[i]  = rolling_sum(pos, 30)
-        r365[i] = rolling_sum(pos, 365)
-        doy = d.timetuple().tm_yday
-        sin_[i] = np.sin(2 * np.pi * doy / 365)
-        cos_[i] = np.cos(2 * np.pi * doy / 365)
-        yr_[i]  = (d.year - base_year) / 10.0
-    log_r365 = np.log1p(r365)
-    sin_rep = np.repeat(sin_[:, None], n_cells, axis=1)
-    cos_rep = np.repeat(cos_[:, None], n_cells, axis=1)
-    yr_rep  = np.repeat(yr_[:, None],  n_cells, axis=1)
-    return np.stack([r30, log_r365, sin_rep, cos_rep, yr_rep], axis=2).reshape(-1, 5)
-
-feat_tr = make_block(train_dates, 0)
-feat_te = make_block(test_dates,  T_tr)
-cell_idx_tr = np.tile(np.arange(n_cells), T_tr).astype(np.int32)
-cell_idx_te = np.tile(np.arange(n_cells), T_te).astype(np.int32)
-
-def build_dm(feat, cidx):
-    N = feat.shape[0]
-    cell_oh = csr_matrix((np.ones(N, np.float32), (np.arange(N), cidx)), shape=(N, n_cells))
-    return sp_hstack([cell_oh, csr_matrix(feat)], format='csr')
-
-X_tr = build_dm(feat_tr, cell_idx_tr)
-X_te = build_dm(feat_te, cell_idx_te)
-y_tr = train_L.flatten().astype(np.float32)
-clf  = LogisticRegression(C=GLM_C, fit_intercept=False, max_iter=2000,
-                           solver='lbfgs', random_state=RAND_SEED, verbose=0)
-clf.fit(X_tr, y_tr)
-glm_scores = clf.predict_proba(X_te)[:, 1].reshape(T_te, n_cells).astype(np.float32)
-print(f'    GLM scores shape={glm_scores.shape}, max={glm_scores.max():.4f}')
-
-# ─── 3b. Extra Trees (補完層) ─────────────────────────────────────────────────
-# 同じ特徴量で ExtraTrees を訓練 (dense 行列で fit)
-print('[3b] Extra Trees 訓練中 (補完層)...', flush=True)
-et_clf = ExtraTreesClassifier(n_estimators=200, max_depth=10, min_samples_leaf=3,
-                               random_state=RAND_SEED, n_jobs=-1)
-et_clf.fit(X_tr.toarray() if hasattr(X_tr, 'toarray') else X_tr, y_tr)
-et_scores = et_clf.predict_proba(
-    X_te.toarray() if hasattr(X_te, 'toarray') else X_te)[:, 1]\
-    .reshape(T_te, n_cells).astype(np.float32)
-print(f'    ET  raw scores shape={et_scores.shape}, max={et_scores.max():.4f}')
-# TTM・HierBayes と同様に 95パーセンタイル正規化 (葉ノード比率が圧縮されるため)
-et_scores = normalize_to_unit(et_scores)
-print(f'    ET  normalized: [{et_scores.min():.4f}, {et_scores.max():.4f}]')
-
-# ─── 4. HierBayes Beta-Binomial 季節近似 ─────────────────────────────────────
-print('[4] HierBayes 近似計算中 (Beta-Binomial seasonal window)...', flush=True)
-train_doys  = np.array([d.timetuple().tm_yday for d in train_dates])
-test_doys   = np.array([d.timetuple().tm_yday for d in test_dates])
-train_years = np.array([d.year for d in train_dates])
-# 直近年に高い重みを付与 (2024: weight=6, 2023: weight=5, ..., 2018: weight=1)
-year_weights = np.maximum(1, 7 - (2025 - train_years)).astype(np.float32)
-
-DOY_WINDOW   = 45
-ALPHA_PRIOR  = 0.5
-BETA_PRIOR   = 0.5
-
-hb_mean = np.zeros((T_te, n_cells), dtype=np.float32)
-hb_lo   = np.zeros((T_te, n_cells), dtype=np.float32)
-hb_hi   = np.zeros((T_te, n_cells), dtype=np.float32)
-
-for t_idx in range(T_te):
-    target_doy = int(test_doys[t_idx])
-    doy_diff = np.abs(train_doys.astype(int) - target_doy)
-    doy_diff = np.minimum(doy_diff, 365 - doy_diff)   # 円環
-    in_win   = (doy_diff <= DOY_WINDOW).astype(np.float32)
-    w = year_weights * in_win                          # (n_train,)
-
-    weighted_hits  = w @ train_L                       # (n_cells,)
-    weighted_total = float(w.sum())
-
-    a_post = (ALPHA_PRIOR + weighted_hits).astype(np.float64)
-    b_post = (BETA_PRIOR  + weighted_total - weighted_hits).astype(np.float64)
-    b_post = np.maximum(b_post, 1e-6)
-
-    hb_mean[t_idx] = (a_post / (a_post + b_post)).astype(np.float32)
-    hb_lo[t_idx]   = beta_dist.ppf(0.025, a_post, b_post).astype(np.float32)
-    hb_hi[t_idx]   = beta_dist.ppf(0.975, a_post, b_post).astype(np.float32)
-    if (t_idx + 1) % 60 == 0:
-        print(f'    {t_idx+1}/{T_te} 完了', flush=True)
-
-print(f'    HierBayes 完了: mean range [{hb_mean.min():.4f}, {hb_mean.max():.4f}]')
-
-# HierBayes を 0-1 スケールに正規化 (TTM と同様に 95パーセンタイル → 1.0)
-# weighted_total が大きいと事後平均が圧縮されるため、相対的なリスク順位を保ちつつ
-# GLM / TTM と比較可能なスケールに変換する。
-_hb_pos = hb_mean[hb_mean > 0]
-if len(_hb_pos) > 0:
-    _hb_p95 = float(np.percentile(_hb_pos, 95))
-    if _hb_p95 > 0:
-        _scale   = 1.0 / _hb_p95
-        hb_mean  = np.clip(hb_mean * _scale, 0.0, 1.0).astype(np.float32)
-        hb_lo    = np.clip(hb_lo   * _scale, 0.0, 1.0).astype(np.float32)
-        hb_hi    = np.clip(hb_hi   * _scale, 0.0, 1.0).astype(np.float32)
-        print(f'    HierBayes 正規化 (p95={_hb_p95:.5f}): '
-              f'[{hb_mean.min():.4f}, {hb_mean.max():.4f}]')
-
-# ─── 5. グリッド座標・市町村名 ───────────────────────────────────────────────
 print('[5] COORDS 構築...', flush=True)
 extra_city_map = {
     '0_9':'酒田市西部','1_3':'飯豊町','1_11':'酒田市北部',
@@ -205,10 +197,9 @@ extra_city_map = {
     '3_12':'尾花沢市','3_14':'舟形町','5_12':'大蔵村',
     '6_11':'新庄市','8_9':'金山町',
 }
-# TTM HTMLからの city マッピング (フォールバック)
-TTM_HTML = BASE + r'\ACM-Application Track\bear_ttm_map_2025_2.html'
+# 既刊マップからの city マッピング (フォールバック、無ければ空)
 try:
-    with open(TTM_HTML, encoding='utf-8') as f:
+    with open(OUT_HTML, encoding='utf-8') as f:
         m = re.search(r'const COORDS = ({.*?});', f.read(), re.DOTALL)
     ttm_coords = json.loads(m.group(1)) if m else {}
 except Exception:
@@ -239,7 +230,7 @@ hist_h30  = raw_counts_tr[-30:].sum(axis=0)
 
 # ─── 7. DAILY データ構築 ────────────────────────────────────────────────────
 print('[7] DAILY データ構築...', flush=True)
-INCLUDE_THRESH = 0.008  # GLM or TTM or ET > 0.8% のセルを格納
+INCLUDE_TOP_K = 40  # 各手法の上位 K セルを格納する (top-20 表示を厳密に保つ)
 grid_col_idx   = {gid: i for i, gid in enumerate(grid_cols)}
 
 daily_data = {}
@@ -247,30 +238,33 @@ for t, d in enumerate(test_dates):
     ds = d.strftime('%Y-%m-%d')
     g_glm  = glm_scores[t]   # (n_cells,)
     g_hbm  = hb_mean[t]
-    g_hblo = hb_lo[t]
-    g_hbhi = hb_hi[t]
     g_ttm  = ttm_scores[t]
     g_et   = et_scores[t]
     g_act  = test_actual[t]  # 実目撃数
 
+    # 格納するセルは**順位**で決める。各手法の上位 INCLUDE_TOP_K と、実際に
+    # 目撃があったセルを必ず含める。スコアの絶対値で足切りすると、その日の
+    # 上位セルでもスコアが小さいと落ち、マップ上の順位が論文のモデルと
+    # ずれてしまう (旧版はこれで top-20 一致率が 0.88 まで落ちていた)。
+    keep = set(np.flatnonzero(g_act > 0).tolist())
+    for arr in (g_glm, g_hbm, g_ttm, g_et):
+        keep.update(np.argpartition(-arr, INCLUDE_TOP_K)[:INCLUDE_TOP_K].tolist())
+
     cells = {}
     for ci, gid in enumerate(grid_cols):
+        if ci not in keep:
+            continue
         glm_v = float(g_glm[ci])
         hb_v  = float(g_hbm[ci])
         ttm_v = float(g_ttm[ci])
         et_v  = float(g_et[ci])
-        # 正規化済み ET は最小値が~0.046 あるため TTM と同じ閾値では全セルが通過する。
-        # ET は表示閾値 (0.15) を INCLUDE 閾値として使用（それ未満は他モデルで補う）。
-        if (glm_v < INCLUDE_THRESH and hb_v < INCLUDE_THRESH
-                and ttm_v < INCLUDE_THRESH * 2 and et_v < 0.15):
-            continue
+        # 6 桁で保持する。4 桁だと丸めで同点が生まれ、その日の順位が
+        # 論文のモデルとわずかにずれる。
         cells[gid] = [
-            round(glm_v, 4),
-            round(float(g_hbm[ci]),  4),
-            round(float(g_hblo[ci]), 4),
-            round(float(g_hbhi[ci]), 4),
-            round(ttm_v, 4),
-            round(et_v,  4),
+            round(glm_v, 6),
+            round(hb_v,  6),
+            round(ttm_v, 6),
+            round(et_v,  6),
             int(g_act[ci]),
         ]
     daily_data[ds] = cells
@@ -296,6 +290,10 @@ print(f'    COORDS: {len(coords_dict)} grids')
 print('[8] JSON シリアライズ...', flush=True)
 DAILY_JSON  = json.dumps(daily_data,  ensure_ascii=False, separators=(',', ':'))
 COORDS_JSON = json.dumps(coords_dict, ensure_ascii=False, separators=(',', ':'))
+p95_json = json.dumps({'glm': round(P95['GLM-Logit'], 6),
+                       'hb':  round(P95['HierBayes'], 6),
+                       'ttm': round(P95['TTM'], 6),
+                       'et':  round(P95['ET'], 6)}, separators=(',', ':'))
 print(f'    DAILY_JSON  : {len(DAILY_JSON)/1024:.0f} KB')
 print(f'    COORDS_JSON : {len(COORDS_JSON)/1024:.0f} KB')
 
@@ -401,7 +399,7 @@ body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d
       <option value="ttm">TTM（補完層）</option>
       <option value="et">Extra Trees（補完層）</option>
     </select>
-    <span id="layer-name">GLM-Logit 予測確率</span>
+    <span id="layer-name">GLM-Logit スコア</span>
   </div>
 </div>
 <div id="notice">
@@ -463,7 +461,7 @@ body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d
       <!-- 主層 -->
       <div class="dp-section">
         <div class="dp-section-title">主層 — GLM-Logit</div>
-        <div class="dp-row"><span class="dp-label">予測確率</span><span class="dp-val" id="dp-glm">—</span></div>
+        <div class="dp-row"><span class="dp-label">スコア</span><span class="dp-val" id="dp-glm">—</span></div>
         <div class="dp-row"><span class="dp-label">本日順位</span><span class="dp-val" id="dp-rank">—</span></div>
       </div>
       <!-- 不確実性層 -->
@@ -472,9 +470,7 @@ body{{font-family:'Meiryo','Hiragino Kaku Gothic ProN',sans-serif;background:#0d
         <div class="dp-row">
           <span class="dp-label">事後平均</span>
           <span class="dp-val" id="dp-hbm">—</span>
-          <span class="dp-ci" id="dp-hbci">—</span>
         </div>
-        <div class="dp-row"><span class="dp-label">グラデッド</span><span id="dp-alert-badge" class="dp-alert-badge">—</span></div>
       </div>
       <!-- 補完層 -->
       <div class="dp-section">
@@ -519,13 +515,21 @@ let isPlaying     = false;
 let playTimer     = null;
 
 const LAYER_NAMES = {{
-  glm: 'GLM-Logit 予測確率',
+  glm: 'GLM-Logit スコア',
   hb:  'HierBayes 事後平均',
-  ttm: 'TTM スコア（補完）',
-  et:  'Extra Trees スコア（補完）',
+  ttm: 'TTM スコア',
+  et:  'Extra Trees スコア',
 }};
-// Cell data indices: [glm, hb_m, hb_lo, hb_hi, ttm, et, act]
-const IDX = {{glm:0, hb_m:1, hb_lo:2, hb_hi:3, ttm:4, et:5, act:6}};
+// Cell data indices: [glm, hb_m, ttm, et, act]
+// All four are rank-preserving normalisations of the released score files.
+const IDX = {{glm:0, hb_m:1, ttm:2, et:3, act:4}};
+
+// Stored values are the released raw scores, so the detail panel and the daily
+// ranking are exactly the paper's. Colour tiers and the threshold slider work on
+// a per-method 95th-percentile rescaling — a positive scalar divide, so it never
+// reorders anything.
+const P95 = {p95_json};
+function disp(v, layer) {{ return v / (P95[layer] || 1); }}
 
 // ─── Risk level ──────────────────────────────────────────────────────────────
 function riskInfo(score) {{
@@ -592,7 +596,7 @@ function renderMap() {{
   const cells = DAILY[ds] || {{}};
   Object.entries(COORDS).forEach(([gid, c]) => {{
     const cell  = cells[gid];
-    const score = cell ? layerScore(cell, currentLayer) : 0;
+    const score = cell ? disp(layerScore(cell, currentLayer), currentLayer) : 0;
     const rect  = rects[gid];
     if (!rect) return;
     if (score < hideThreshold) {{
@@ -625,13 +629,13 @@ function updateSidebar() {{
   // Stats
   let active=0, alertCnt=0, totalAct=0, maxScore=0;
   Object.values(cells).forEach(cell => {{
-    const s = layerScore(cell, currentLayer);
+    const s = disp(layerScore(cell, currentLayer), currentLayer);
     if (s >= hideThreshold) active++;
-    if (cell[IDX.glm] >= 0.70) alertCnt++;
+    if (disp(cell[IDX.glm], 'glm') >= 0.70) alertCnt++;
     totalAct += cell[IDX.act];
     if (cell[IDX.glm] > maxScore) maxScore = cell[IDX.glm];
   }});
-  const ri = riskInfo(maxScore);
+  const ri = riskInfo(disp(maxScore, 'glm'));
   document.getElementById('st-active').textContent  = active;
   document.getElementById('st-maxrisk').innerHTML   =
     '<span class="rank-badge ' + ri.cls + '">' + ri.label + '</span>';
@@ -640,7 +644,7 @@ function updateSidebar() {{
 
   // Ranking (always by GLM-Logit)
   const ranked = Object.entries(cells)
-    .filter(([,c]) => c[IDX.glm] >= hideThreshold)
+    .filter(([,c]) => disp(c[IDX.glm], 'glm') >= hideThreshold)
     .sort((a,b) => b[1][IDX.glm] - a[1][IDX.glm])
     .slice(0, 20);
 
@@ -648,7 +652,7 @@ function updateSidebar() {{
   ranked.forEach(([gid, cell], i) => {{
     const city = (COORDS[gid] && COORDS[gid].city) || gid;
     const s    = cell[IDX.glm];
-    const ri   = riskInfo(s);
+    const ri   = riskInfo(disp(s, 'glm'));
     html += `<div class="rank-row" onclick="showCellDetail('${{gid}}')">
       <span class="rank-no">${{i+1}}</span>
       <span class="rank-city" title="${{city}} [${{gid}}]">${{city}}</span>
@@ -677,29 +681,12 @@ function showCellDetail(gid) {{
   const ranked = Object.entries(cells)
     .sort((a,b) => b[1][IDX.glm] - a[1][IDX.glm]);
   const glmRank = ranked.findIndex(([g]) => g === gid) + 1;
-  document.getElementById('dp-glm').textContent  = (cell[IDX.glm]*100).toFixed(1) + '%';
+  document.getElementById('dp-glm').textContent  = cell[IDX.glm].toFixed(3);
   document.getElementById('dp-rank').textContent = '第' + glmRank + '位 / ' + ranked.length + '位中';
 
   // HierBayes
-  const hbm  = cell[IDX.hb_m];
-  const hblo = cell[IDX.hb_lo];
-  const hbhi = cell[IDX.hb_hi];
-  const ciW  = hbhi - hblo;
-  document.getElementById('dp-hbm').textContent  = (hbm*100).toFixed(1) + '%';
-  document.getElementById('dp-hbci').textContent =
-    '[' + (hblo*100).toFixed(1) + '%, ' + (hbhi*100).toFixed(1) + '%]';
-  // Graduated alert
-  let alertTier, alertCls;
-  if (hbm >= 0.25 && ciW < 0.30) {{
-    alertTier = '緊急アラート'; alertCls = 'risk-alert';
-  }} else if (hbm >= 0.10) {{
-    alertTier = '定期警戒';    alertCls = 'risk-mid';
-  }} else {{
-    alertTier = '注意レベル';  alertCls = 'risk-low';
-  }}
-  const badge = document.getElementById('dp-alert-badge');
-  badge.textContent = alertTier;
-  badge.className   = 'dp-alert-badge ' + alertCls;
+  const hbm = cell[IDX.hb_m];
+  document.getElementById('dp-hbm').textContent = hbm.toFixed(3);
 
   // TTM / ET agrees
   const glmTop20 = ranked.slice(0, 20).map(([g]) => g);

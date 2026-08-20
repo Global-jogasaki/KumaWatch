@@ -340,7 +340,18 @@ reported. No model needs to be rerun.
 python scripts/generate_kumawatch_webmap.py
 ```
 
-Outputs `kumawatch_map_2025.html` (~1.5 MB, all predictions embedded; Leaflet and OSM tiles load from their CDNs). Requires pre-computed TTM score CSV at the path configured in the script header.
+The generator reads the four released score files and **retrains nothing**. Before
+any HTML is written it checks Recall@20 against Table 1 for each method, plus day
+count, cell count and column alignment, and aborts rather than embed scores that
+do not match the paper. The published map reproduces the paper's top-20 ranking
+on all 365 days for all four methods.
+
+Earlier releases of this script fitted GLM-Logit and Extra Trees inline and
+substituted a Beta-Binomial seasonal approximation for HierBayes, so the layers
+labelled "Extra Trees" and "HierBayes" in the demo were not the methods the paper
+evaluated. That path has been removed.
+
+Outputs `maps/kumawatch_primary_layer.html` (~1 MB, all predictions embedded; Leaflet and OSM tiles load from their CDNs). Cell values are the released scores themselves, so the detail panel and the daily ranking are the paper's; only the colour tiers and the threshold slider apply a per-method 95th-percentile rescaling, which is a positive scalar divide and never reorders anything.
 
 ---
 
