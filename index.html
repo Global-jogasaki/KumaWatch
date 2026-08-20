@@ -41,7 +41,7 @@ h1{font-size:2rem;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.
 <div class="hero">
   <div class="bear">🐻</div>
   <h1>KumaWatch</h1>
-  <div class="subtitle">Multi-Method Wildlife Encounter Alert System for Operational Municipal Deployment in Northern Japan</div>
+  <div class="subtitle">Benchmarking Wildlife Encounter Prediction for Municipal Decision Support in Northern Japan</div>
   <div class="conf">ACM SIGSPATIAL 2026 — Applications Track</div>
 
   <div class="stats-row">
@@ -54,13 +54,13 @@ h1{font-size:2rem;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.
   <div class="cards">
     <div class="card">
       <div class="card-icon">🗺️</div>
-      <div class="card-title">Three-Layer Prediction Map (2025)</div>
-      <div class="card-desc">Switch between 4 models: GLM-Logit, HierBayes, TTM, and Extra Trees. Explore all 365 days with the date slider. Click any cell for a detailed stats panel.</div>
+      <div class="card-title">Multi-Method Benchmark Map (2025)</div>
+      <div class="card-desc">Switch between 4 methods: GLM-Logit, HierBayes, TTM, and Extra Trees. Explore all 365 held-out test days with the date slider. Click any cell for a detailed stats panel.</div>
       <div class="card-layer">
-        <span class="badge b-primary">GLM-Logit Primary</span>
-        <span class="badge b-bayes">HierBayes Uncertainty</span>
-        <span class="badge b-comp">TTM Complementary</span>
-        <span class="badge b-comp">Extra Trees Complementary</span>
+        <span class="badge b-primary">GLM-Logit (best)</span>
+        <span class="badge b-bayes">HierBayes</span>
+        <span class="badge b-comp">TTM</span>
+        <span class="badge b-comp">Extra Trees</span>
       </div>
       <a class="btn" href="maps/kumawatch_primary_layer.html" target="_blank">&#9654; Open Map</a>
     </div>
@@ -71,20 +71,20 @@ h1{font-size:2rem;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.
       <div class="card-layer">
         <span class="badge b-primary">kumawatch_benchmark.ipynb</span>
       </div>
-      <a class="btn btn-outline" href="https://github.com/Global-jogasaki/KumaWatch" target="_blank">&#128194; GitHub Repository</a>
+      <a class="btn btn-outline" href="https://github.com/todalaba/KumaWatch" target="_blank">&#128194; GitHub Repository</a>
     </div>
   </div>
 
   <div class="divider"></div>
 
   <div class="meta">
-    <strong style="color:#a0c8a8">Three-Layer Architecture</strong><br>
-    <span style="color:#6adf8a">&#9312;</span> <strong>Primary</strong>: GLM-Logit — L2-regularized logistic regression (cell fixed-effects + rolling30 + log-annual + seasonal harmonics + year_idx)<br>
-    <span style="color:#6ab8df">&#9313;</span> <strong>Uncertainty</strong>: HierBayes — hierarchical Bayesian Poisson (PyMC + NumPyro) &rarr; graduated alert strategy &middot; Recall@20 <strong>0.542 &rarr; 0.639</strong> (top-50% conf.)<br>
-    <span style="color:#dfa050">&#9314;</span> <strong>Complementary</strong>: IBM Granite TTM (zero-shot) + Extra Trees &middot; Jaccard@20 GLM vs TTM = <strong>0.55</strong><br>
+    <strong style="color:#a0c8a8">Benchmark Result Summary (Yamagata, primary setting)</strong><br>
+    <span style="color:#6adf8a">&#9312;</span> <strong>GLM-Logit</strong> (best-ranked): Recall@20 = 0.547 &middot; margin over static prior B1 not significant (+0.014, p = 0.155)<br>
+    <span style="color:#6ab8df">&#9313;</span> <strong>HierBayes</strong>: Recall@20 = 0.542 — no improvement over GLM-Logit (p = 0.624) &middot; confidence-filtered subset top-50% days: 0.639 (exploratory only; does not validate cell-level uncertainty)<br>
+    <span style="color:#dfa050">&#9314;</span> <strong>TTM</strong> (IBM Granite) + <strong>Extra Trees</strong>: significantly worse than GLM-Logit (p &lt; 0.001) &middot; Jaccard@20 GLM vs TTM = 0.55 — moderate disagreement; not evidence of useful complementarity<br>
     <br>
     Data: Yamagata &amp; Akita prefectural wildlife observation databases (public) &middot;
-    Code: <a href="https://github.com/Global-jogasaki/KumaWatch">Apache 2.0</a> &middot;
+    Code: <a href="https://github.com/todalaba/KumaWatch">Apache 2.0</a> &middot;
     Data: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a><br>
     Author: Hiroshi Jogasaki &mdash; <em>Paper submitted to ACM SIGSPATIAL 2026 Applications Track</em>
   </div>

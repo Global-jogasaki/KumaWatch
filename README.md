@@ -1,11 +1,11 @@
 # KumaWatch 🐻
 
-**A Multi-Method Wildlife Encounter Alert System toward Operational Municipal Deployment in Northern Japan**
+**Benchmarking Wildlife Encounter Prediction for Municipal Decision Support in Northern Japan**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![ACM SIGSPATIAL 2026](https://img.shields.io/badge/ACM%20SIGSPATIAL-2026-red.svg)](https://sigspatial.acm.org/)
-[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen.svg)](https://global-jogasaki.github.io/KumaWatch/)
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen.svg)](https://todalaba.github.io/KumaWatch/)
 
 ---
 
@@ -15,8 +15,8 @@
 
 | Link | Description |
 |------|-------------|
-| [**🗺️ KumaWatch Landing Page**](https://global-jogasaki.github.io/KumaWatch/) | System overview and links to the interactive maps |
-| [**▶ Three-Layer Prediction Map (2025)**](https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
+| [**🗺️ KumaWatch Landing Page**](https://todalaba.github.io/KumaWatch/) | System overview and links to the interactive maps |
+| [**▶ Three-Layer Prediction Map (2025)**](https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
 
 To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern browser (single self-contained HTML file, no external dependencies).
 
@@ -24,41 +24,31 @@ To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern
 
 ## Overview
 
-Human–bear conflicts in northern Japan have escalated sharply, with **publicly available Yamagata Prefecture records reporting 2,655 Asiatic black bear sighting records in 2025**. Municipalities face the challenge of allocating limited patrol resources across large geographic areas under high daily uncertainty.
+Human–bear conflicts in northern Japan have escalated sharply, with **publicly available Yamagata Prefecture records reporting 2,655 Asiatic black bear sighting records in 2025**. Municipalities face a daily resource-constrained question: which twenty grid cells should patrols visit today?
 
-**KumaWatch** is a deployable web-based decision-support system combining three complementary modeling layers to predict daily bear encounter risk across grid cells in Yamagata and Akita Prefectures, Japan.
+**KumaWatch** is an open benchmark and browser-based decision-support prototype comparing eleven wildlife encounter prediction methods under a fixed municipal patrol budget. The central finding is negative and procurement-relevant: a foundation model requiring ~4 hours of API inference is significantly worse than a static prior costing milliseconds, and a 30-minute MCMC pipeline yields no ranking improvement over a sub-30-second logistic regression.
 
 ---
 
 ## Abstract
 
-We present **KumaWatch**, a multi-method wildlife encounter alert system designed for operational municipal deployment in northern Japan. The system integrates three complementary modeling layers:
+We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day held-out year (2025), with measured daily inference cost beside every accuracy figure.
 
-1. **Primary Layer — GLM-Logit**: L2-regularized logistic regression combining cell-level fixed effects with temporal dynamics (rolling 30-day, log-annual, and seasonal harmonics). Evaluated on 365 days in 2025 across 144 cells (Yamagata) and 260 cells (Akita).
+**Central finding (negative and procurement-relevant):** IBM Granite TTM requires ~4 hours of API inference per day and is significantly *worse* than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0004). A 30-minute MCMC pipeline (HierBayes) yields no Recall@20 improvement over a sub-30-second logistic regression on Yamagata (*p* = 0.624) and is significantly worse on Akita (*p* = 0.003). On Yamagata — the primary evaluation setting — GLM-Logit's margin over the static prior B1 does not approach significance (+0.014, *p* = 0.155).
 
-2. **Uncertainty Layer — HierBayes**: Hierarchical Bayesian Poisson model (PyMC + NumPyro) quantifying predictive uncertainty across grid cells. Enables a *proposed* graduated alert protocol: restricting alerts to the top-50% confidence subset raises Recall@20 from 0.542 to **0.639** on Yamagata. *The operational effectiveness of this protocol has not yet been validated in live deployment.*
-
-3. **Complementary Layer — TTM + Extra Trees**: IBM Granite Tiny Time Mixers (zero-shot in-context learning) and Extra Trees (following Nakamoto & Fukazawa 2025) provide independent signal sources for cross-validation and operational auditability.
-
-We benchmark **11 methods** in total (6 naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) using permutation tests with Bonferroni correction (α = 0.0038 over 13 comparisons). GLM-Logit achieves **Recall@20 = 0.547** (Yamagata) and **0.454** (Akita), statistically significantly outperforming IBM Granite TTM and Extra Trees (*p* < 0.001). Naive baselines (Static Prior, Recent Moving Average, and their seasonal augmentations) are competitive on Recall@K but lack uncertainty quantification for graduated response and lack independent signal sources for cross-validation auditability.
-
-Cross-layer analysis (Jaccard@20: Primary vs TTM = 0.55, Primary vs ET = 0.30) confirms that TTM and Extra Trees capture partially distinct spatial patterns, motivating their retention as complementary audit layers.
-
-We release the complete benchmark codebase, multi-layer web map, and dataset under permissive licenses to support reproducibility and future municipal deployments.
+The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 comparisons, P = 5,000). We additionally release a browser-based decision-support map (no server-side computation, no external API) and argue that cost-annotated top-K benchmarking should precede model selection in municipal geospatial alerting.
 
 ---
 
 ## Key Contributions
 
-1. **Three-layer operational architecture** — GLM-Logit (primary precision), HierBayes (uncertainty quantification + graduated alerts), TTM + Extra Trees (complementary audit layers), integrated into a Leaflet.js web decision-support map.
+1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day held-out windows across two prefectures, with measured daily inference cost beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
 
-2. **Rigorous 11-method benchmark** — Head-to-head comparison of statistical, Bayesian, tree-ensemble, and time series foundation models on identical 365-day evaluation windows across two prefectures, using resource-aware metrics (Precision@K, Recall@K) and Bonferroni-corrected permutation tests.
+2. **Negative result with operational reading** — Neither foundation-model inference (~4 h/day) nor MCMC (~30 min/day) buys top-K accuracy over far cheaper alternatives. On Yamagata, GLM-Logit's lead over the static prior is not significant (*p* = 0.155). Extra Trees is strongly miscalibrated (BSS = −1.63). These are null results about ranking only; downstream uses of HierBayes posterior variance and ET environmental covariates are untested rather than refuted.
 
-3. **Proposed graduated alert protocol** — HierBayes uncertainty quantification enables dynamic confidence-based filtering, raising Recall@20 from 0.542 (all-days) to **0.639** (top-50% confidence days). *Not yet validated in live operational deployment.*
+3. **Browser-based decision-support prototype** — A single-file Leaflet map (no server, no API) serving pre-computed GLM-Logit predictions for all 144 Yamagata cells × 365 days, with four risk tiers and a user-adjustable threshold. Architecture follows directly from Table 1's cost column.
 
-4. **Cross-layer divergence analysis** — Jaccard@20 decomposition reveals that GLM-Logit, TTM, and Extra Trees capture partially non-overlapping spatial risk signals, supporting a multi-method ensemble rather than single-model deployment.
-
-5. **Open benchmark release** — Complete codebase, benchmark data (Yamagata 144 cells + Akita 260 cells), interactive web maps, and evaluation scripts under Apache 2.0 and CC-BY 4.0 licenses.
+4. **Open benchmark release** — Complete codebase, benchmark data (Yamagata 144 cells + Akita 260 cells), pre-computed score files (GLM-Logit, HierBayes, ET, TTM), and evaluation notebooks under Apache 2.0 and CC-BY 4.0 licenses.
 
 ---
 
@@ -66,32 +56,40 @@ We release the complete benchmark codebase, multi-layer web map, and dataset und
 
 ### Yamagata Prefecture (144 cells, 10 km × 10 km)
 
-| Method | Recall@20 | Significance vs GLM-Logit |
-|--------|:---------:|--------------------------|
-| **GLM-Logit** (Primary) | **0.547** | — |
-| HierBayes (top-50% conf. days) | **0.639** | — (uncertainty layer; different metric) |
-| HierBayes (all days) | 0.542 | ns (p = 0.624) |
-| B5: Recent MA + Seasonality | 0.534 | ns (p = 0.310) |
-| B1: Static Prior | 0.533 | ns (p = 0.155) |
-| **TTM** (IBM Granite 1536-96-R2) | 0.492 | sig. (p < 0.001) |
-| B2: Recent Moving Average | 0.486 | — |
-| **Extra Trees** | 0.474 | sig. (p < 0.001) |
-| Poisson-GLM | 0.027 | — |
+| Method | Recall@10 | Recall@20 | Recall@30 | Significance vs GLM-Logit (Recall@20) |
+|--------|:---------:|:---------:|:---------:|---------------------------------------|
+| **GLM-Logit** (Primary) | 0.345 | **0.547** | 0.690 | — |
+| HierBayes (top-50% conf. days) | — | **0.639** | — | — (uncertainty layer; different metric) |
+| HierBayes (all days) | 0.329 | 0.542 | 0.694 | ns (p = 0.624) |
+| B5: Recent MA + Seasonality | 0.333 | 0.534 | 0.660 | ns (p = 0.310) |
+| B1: Static Prior | 0.286 | 0.533 | 0.659 | ns (p = 0.155) |
+| B4: Static Prior + Seasonality | 0.315 | 0.523 | 0.653 | — |
+| **TTM** (IBM Granite 1536-96-R2) | 0.291 | 0.492 | 0.620 | sig. (p < 0.001) |
+| B2: Recent Moving Average | 0.311 | 0.486 | 0.607 | — |
+| B3: DoY Seasonality | 0.306 | 0.475 | 0.591 | — |
+| **Extra Trees** | 0.293 | 0.474 | 0.607 | sig. (p < 0.001) |
+| B0: Random | 0.060 | 0.126 | 0.186 | — |
+| Poisson-GLM | 0.020 | 0.027 | 0.029 | — |
 
 ### Akita Prefecture (260 cells, 10 km × 10 km)
 
-| Method | Recall@20 | Significance vs GLM-Logit |
-|--------|:---------:|--------------------------|
-| **GLM-Logit** (Primary) | **0.454** | — |
-| HierBayes (all days) | 0.431 | sig. (p = 0.003) |
-| B5: Recent MA + Seasonality | 0.427 | ns (p = 0.043, below Bonferroni α) |
-| B2: Recent Moving Average | 0.418 | — |
-| B1: Static Prior | 0.405 | sig. (p < 0.001) |
-| **TTM** (IBM Granite 512-96-R2) | 0.395 | sig. (p < 0.001) |
-| **Extra Trees** | 0.326 | sig. (p < 0.001) |
-| Poisson-GLM | 0.003 | — |
+| Method | Recall@10 | Recall@20 | Recall@30 | Significance vs GLM-Logit (Recall@20) |
+|--------|:---------:|:---------:|:---------:|---------------------------------------|
+| **GLM-Logit** (Primary) | 0.259 | **0.454** | 0.587 | — |
+| HierBayes (all days) | 0.262 | 0.431 | 0.577 | sig. (p = 0.003) |
+| B5: Recent MA + Seasonality | 0.261 | 0.427 | 0.568 | ns (p = 0.043, above the Bonferroni-corrected α = 0.0038) |
+| B2: Recent Moving Average | 0.265 | 0.418 | 0.538 | — |
+| B4: Static Prior + Seasonality | 0.244 | 0.417 | 0.541 | — |
+| B1: Static Prior | 0.251 | 0.405 | 0.530 | sig. (p < 0.001) |
+| **TTM** (IBM Granite 512-96-R2) | 0.227 | 0.395 | 0.516 | sig. (p < 0.001) |
+| B3: DoY Seasonality | 0.216 | 0.352 | 0.451 | — |
+| **Extra Trees** | 0.183 | 0.326 | 0.470 | sig. (p < 0.001) |
+| B0: Random | 0.047 | 0.080 | 0.114 | — |
+| Poisson-GLM | 0.003 | 0.003 | 0.003 | — |
 
-*Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures. Comparisons against naive baselines (B1, B5) are significant on Akita but not on Yamagata — a key motivation for KumaWatch's multi-layer architecture.*
+*Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.155); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. TTM is significantly worse than B1 (Δ = −0.041, p = 0.0004). GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures.*
+
+*Recall@10 and Recall@30 values are taken from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs). For HierBayes, MCMC sampling introduces slight run-to-run variation: the archived run gives Recall@20 = 0.545 (Yamagata), while the paper reports 0.542; the Recall@10/30 columns report the archived-run values alongside the paper's Recall@20.*
 
 ### Confidence-Filtered Recall@20 (Yamagata — days ranked by prediction confidence)
 
@@ -104,7 +102,7 @@ We release the complete benchmark codebase, multi-layer web map, and dataset und
 | B1 | 1.000 | 0.592 | 0.544 | 0.533 |
 | B2 | 0.150 | 0.416 | 0.458 | 0.486 |
 
-*HierBayes is the only method that exceeds GLM-Logit at the operationally critical top-50% confidence subset (0.639 vs 0.619), validating its role as the uncertainty quantification layer for graduated alert protocols. B1's top-25% = 1.000 reflects concentration of correct predictions on high-frequency cells, not genuine uncertainty quantification.*
+*HierBayes exceeds GLM-Logit at the top-50% confidence subset (0.639 vs 0.619). This exploratory analysis concerns subsets of days ranked by prediction confidence and does not validate cell-level uncertainty for graduated alerts; our benchmark scores ranking under a fixed patrol budget only, and does not evaluate those downstream uses. B1's top-25% = 1.000 is a degenerate artifact: constant confidence scores cause argsort tie-breaking to select winter days, which have few valid sighting days — not evidence of genuine uncertainty quantification.*
 
 ### Calibration Metrics
 
@@ -116,16 +114,18 @@ We release the complete benchmark codebase, multi-layer web map, and dataset und
 | Extra Trees | 0.097 | −1.63 | 0.126 | −1.18 |
 | B2: Recent MA | **0.031** | **0.15** | **0.039** | **0.32** |
 
-*BSS (Brier Skill Score) > 0 indicates better calibration than climatological baseline. B2 achieves the best Brier score by construction (predicted probability ≈ recent observed rate), but produces only point estimates with no uncertainty quantification — the key reason HierBayes is chosen as the uncertainty layer despite a similar Brier score to GLM-Logit.*
+*BSS (Brier Skill Score) > 0 indicates better calibration than the climatological baseline. B2 achieves the best Brier Skill Score of any method on both prefectures. ET is strongly miscalibrated (BSS = −1.63 on Yamagata), consistent with known behaviour of tree ensembles on probability estimation tasks. HierBayes and GLM-Logit are well-calibrated and similar (BSS ≈ 0.08 YGT, 0.28–0.30 AKT).*
 
 ### Cross-Layer Divergence Analysis (Yamagata, Jaccard@20)
 
 | Layer Pair | Jaccard@20 | Interpretation |
 |-----------|:----------:|----------------|
-| GLM-Logit vs HierBayes | 0.95 | Near-redundant rankings; HierBayes value is in uncertainty quantification |
-| GLM-Logit vs TTM | 0.55 | Moderate disagreement; useful cross-validation |
-| HierBayes vs TTM | 0.50 | Similar to primary vs TTM |
-| GLM-Logit vs Extra Trees | 0.30 | Substantial disagreement; ET captures spatial features primary layer ignores |
+| GLM-Logit vs HierBayes | 0.95 | Near-redundant rankings; HierBayes value is in posterior uncertainty (untested here) |
+| GLM-Logit vs TTM | 0.55 | Moderate disagreement; does not by itself establish useful complementarity |
+| HierBayes vs TTM | 0.50 | Similar level of disagreement |
+| GLM-Logit vs Extra Trees | 0.30 | Substantial disagreement; does not establish that ET provides useful complementary information |
+
+*Low Jaccard agreement indicates different rankings, but disagreement alone is not evidence of useful complementarity. HierBayes' posterior variance as a confidence signal for graduated alerts, and ET's environmental covariates as an independent check on a recency-driven prediction, are untested rather than refuted by this benchmark.*
 
 ---
 
@@ -167,6 +167,7 @@ KumaWatch/
 ├── index.html                             # GitHub Pages landing page (live demo entry point)
 ├── notebooks/
 │   ├── kumawatch_benchmark.ipynb          # Full 11-method benchmark (GLM-Logit, HierBayes, ET, TTM, B0-B5)
+│   ├── kumawatch_benchmark_table3_colab.ipynb  # Confidence-filtered Recall@20 (Table 3) + permutation test
 │   ├── ttm_yamagata.ipynb                 # TTM inference — Yamagata 144 cells (IBM Granite TTM 1536-96-R2)
 │   ├── ttm_akita.ipynb                    # TTM inference — Akita 260 cells (IBM Granite TTM 512-96-R2)
 │   └── et_akita.ipynb                     # Extra Trees baseline — Akita (Colab)
@@ -185,6 +186,9 @@ KumaWatch/
 │   ├── yamagata_10km_grid_coords.csv      # Grid cell coordinates and IDs
 │   ├── akita_10km_grid_coords.csv         # Grid cell coordinates and IDs
 │   ├── scores/                            # Pre-computed 2025 test-period scores
+│   │   ├── yamagata_glm_logit_scores_2025.npy   # GLM-Logit (365 × 144, float32)
+│   │   ├── yamagata_hier_mean_scores_2025.npy   # HierBayes posterior mean (365 × 144, float64)
+│   │   ├── yamagata_hier_std_scores_2025.npy    # HierBayes posterior std / confidence (365 × 144, float64)
 │   │   ├── yamagata_et_scores_2025.csv
 │   │   ├── yamagata_ttm_scores_2025.csv
 │   │   ├── yamagata_ttm_scores.npy        # NumPy binary format (365 × 144, float32)
@@ -250,7 +254,7 @@ pip install pymc numpyro
 Open the live demo in your browser — no installation needed:
 
 ```
-https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html
+https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html
 ```
 
 Or open `maps/kumawatch_primary_layer.html` locally in any modern browser.
@@ -318,8 +322,8 @@ Outputs `kumawatch_map_2025.html` (self-contained, ~1.5 MB). Requires pre-comput
 ```bibtex
 @inproceedings{jogasaki2026kumawatch,
   author    = {Hiroshi Jogasaki},
-  title     = {{KumaWatch}: A Multi-Method Wildlife Encounter Alert System toward
-               Operational Municipal Deployment in Northern Japan},
+  title     = {{KumaWatch}: Benchmarking Wildlife Encounter Prediction for
+               Municipal Decision Support in Northern Japan},
   booktitle = {Proceedings of the 34th ACM SIGSPATIAL International Conference on
                Advances in Geographic Information Systems (SIGSPATIAL '26)},
   year      = {2026},
