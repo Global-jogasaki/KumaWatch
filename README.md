@@ -171,7 +171,8 @@ KumaWatch/
 │   ├── generate_kumawatch_webmap.py       # Three-layer map generator (GLM-Logit, HierBayes, TTM, ET)
 │   ├── generate_glm_webmap.py             # GLM-Logit single-layer map generator
 │   ├── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
-│   └── crosslayer_jaccard.py              # Cross-method Jaccard@K from released score files
+│   ├── crosslayer_jaccard.py              # Cross-method Jaccard@K from released score files
+│   └── table2_significance.py             # Reproduces the paper's pairwise significance table
 ├── maps/
 │   ├── kumawatch_primary_layer.html       # Three-layer interactive web map (2025) — self-contained HTML
 │   └── kumawatch_complementary_layer.html # Complementary-layer focused map view
@@ -187,6 +188,8 @@ KumaWatch/
 │   │   ├── yamagata_et_scores_2025.csv
 │   │   ├── yamagata_ttm_scores_2025.csv
 │   │   ├── yamagata_ttm_scores.npy        # NumPy binary format (365 × 144, float32)
+│   │   ├── akita_glm_logit_scores_2025.npy      # GLM-Logit (365 × 260, float32)
+│   │   ├── akita_hier_mean_scores_2025.npy      # HierBayes posterior mean (365 × 260, float32)
 │   │   ├── akita_et_scores_2025.csv
 │   │   ├── akita_ttm_scores_2025.csv
 │   │   └── akita_ttm_scores.npy           # NumPy binary format (365 × 260, float32)
@@ -303,6 +306,19 @@ Open `notebooks/kumawatch_benchmark.ipynb` in Jupyter or Google Colab. Set the s
 python scripts/calibration_validation.py --prefecture yamagata
 python scripts/calibration_validation.py --prefecture akita
 ```
+
+### Reproduce the significance table
+
+```bash
+python scripts/table2_significance.py
+```
+
+Recomputes the effect size, 95% confidence interval and permutation p-value for
+each published pairwise comparison at K = 20, straight from `data/scores/` — no
+model is retrained and no MCMC is rerun. Day-level paired bootstrap (B = 5,000)
+and sign-flip permutation (P = 5,000), both seeded, with Bonferroni-corrected
+α = 0.0038. Each row is printed beside its published value and flagged `[OK]` or
+`[DIFFERS]`. Use `--all` for every available method pair.
 
 ### Verify cross-method top-K agreement
 

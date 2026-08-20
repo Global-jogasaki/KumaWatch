@@ -57,10 +57,13 @@ PREFECTURES = {
     "akita": {
         "sightings": REPO / "data" / "akita_10km_daily_timeseries.csv",
         "scores": {
-            "TTM": REPO / "data" / "scores" / "akita_ttm_scores_2025.csv",
-            "ET":  REPO / "data" / "scores" / "akita_et_scores_2025.csv",
+            "GLM-Logit": REPO / "data" / "scores" / "akita_glm_logit_scores_2025.npy",
+            "HierBayes": REPO / "data" / "scores" / "akita_hier_mean_scores_2025.npy",
+            "TTM":       REPO / "data" / "scores" / "akita_ttm_scores_2025.csv",
+            "ET":        REPO / "data" / "scores" / "akita_et_scores_2025.csv",
         },
-        "expected_r20": {"TTM": 0.395, "ET": 0.326},
+        "expected_r20": {"GLM-Logit": 0.454, "HierBayes": 0.431,
+                         "TTM": 0.395, "ET": 0.326},
     },
 }
 
