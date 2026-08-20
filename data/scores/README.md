@@ -14,12 +14,30 @@ All CSV files are in **wide format**:
 
 | File | Model | Prefecture | Shape |
 |------|-------|-----------|-------|
+| `yamagata_glm_logit_scores_2025.npy` | GLM-Logit | Yamagata | (365, 144) float32 |
+| `yamagata_hier_mean_scores_2025.npy` | HierBayes (posterior mean) | Yamagata | (365, 144) float64 |
+| `yamagata_hier_std_scores_2025.npy` | HierBayes (posterior std) | Yamagata | (365, 144) float64 |
 | `yamagata_et_scores_2025.csv` | Extra Trees | Yamagata | 365 × 144 |
 | `yamagata_ttm_scores_2025.csv` | IBM Granite TTM | Yamagata | 365 × 144 |
 | `yamagata_ttm_scores.npy` | IBM Granite TTM | Yamagata | (365, 144) float32 |
 | `akita_et_scores_2025.csv` | Extra Trees | Akita | 365 × 260 |
 | `akita_ttm_scores_2025.csv` | IBM Granite TTM | Akita | 365 × 260 |
 | `akita_ttm_scores.npy` | IBM Granite TTM | Akita | (365, 260) float32 |
+
+### Verification
+
+Recomputing global Recall@K from these files reproduces the values reported in the
+paper and in the top-level README:
+
+| File | Recall@10 | Recall@20 | Recall@30 | SHA-256 (first 16) |
+|------|:---------:|:---------:|:---------:|--------------------|
+| `yamagata_et_scores_2025.csv` | 0.2927 | 0.4739 | 0.6066 | `456fcbc3e01e8b48` |
+| `akita_et_scores_2025.csv` | 0.1829 | 0.3258 | 0.4698 | `569cebe6df15c667` |
+
+The Extra Trees files also reproduce the reported calibration figures
+(Yamagata Brier = 0.097, BSS = −1.63). Cell columns in the ET files are ordered
+`row_col` and must be aligned to the sightings CSV **by column name**, not by
+position, since the two files use different column orderings.
 
 ## How to Use
 
@@ -33,6 +51,13 @@ YAMA_TTM_SCORES_CSV = 'data/scores/yamagata_ttm_scores_2025.csv'
 AKITA_ET_SCORES_CSV = 'data/scores/akita_et_scores_2025.csv'
 AKITA_TTM_SCORES_CSV = 'data/scores/akita_ttm_scores_2025.csv'
 ```
+
+## Regenerating GLM-Logit and HierBayes Scores
+
+GLM-Logit and HierBayes scores are computed directly in `notebooks/kumawatch_benchmark.ipynb`
+(or `notebooks/kumawatch_benchmark_table3_colab.ipynb` for Table 3 confidence-filtered analysis).
+HierBayes requires PyMC + NumPyro (JAX backend); on Windows set
+`PYTENSOR_FLAGS=device=cpu,floatX=float64,optimizer=fast_compile,cxx=` to disable C++ compilation.
 
 ## Regenerating ET Scores
 
