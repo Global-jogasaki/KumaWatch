@@ -80,8 +80,8 @@ h1{font-size:2rem;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.
   <div class="meta">
     <strong style="color:#a0c8a8">Benchmark Result Summary (Yamagata, primary setting)</strong><br>
     <span style="color:#6adf8a">&#9312;</span> <strong>GLM-Logit</strong> (best-ranked): Recall@20 = 0.547 &middot; margin over static prior B1 not significant (+0.014, p = 0.155)<br>
-    <span style="color:#6ab8df">&#9313;</span> <strong>HierBayes</strong>: Recall@20 = 0.542 — no improvement over GLM-Logit (p = 0.624) &middot; confidence-filtered subset top-50% days: 0.639 (exploratory only; does not validate cell-level uncertainty)<br>
-    <span style="color:#dfa050">&#9314;</span> <strong>TTM</strong> (IBM Granite) + <strong>Extra Trees</strong>: significantly worse than GLM-Logit (p &lt; 0.001) &middot; Jaccard@20 GLM vs TTM = 0.55 — moderate disagreement; not evidence of useful complementarity<br>
+    <span style="color:#6ab8df">&#9313;</span> <strong>HierBayes</strong>: Recall@20 = 0.542 — no improvement over GLM-Logit on Yamagata (p = 0.624); posterior-uncertainty applications were not evaluated<br>
+    <span style="color:#dfa050">&#9314;</span> <strong>TTM</strong> (IBM Granite): significantly worse than the static prior on Yamagata (&Delta; = &minus;0.041, p = 0.0004) &middot; <strong>Extra Trees</strong>: underperforms the other non-ablation learned methods and is strongly miscalibrated (BSS = &minus;1.63). Cross-method disagreement is not evidence of useful complementarity<br>
     <br>
     Data: Yamagata &amp; Akita prefectural wildlife observation databases (public) &middot;
     Code: <a href="https://github.com/todalaba/KumaWatch">Apache 2.0</a> &middot;
