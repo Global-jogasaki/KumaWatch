@@ -62,10 +62,10 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | HierBayes | 0.329 | 0.542 | 0.697 | ns (p = 0.624) |
 | B5: Recent MA + Seasonality | 0.333 | 0.534 | 0.660 | ns (p = 0.310) |
 | B1: Static Prior | 0.286 | 0.533 | 0.659 | ns (p = 0.155) |
-| B4: Static Prior + Seasonality | 0.320 | 0.517 | 0.644 | — |
+| B4: Static Prior + Seasonality | 0.315 | 0.523 | 0.653 | — |
 | **TTM** (IBM Granite 1536-96-R2) | 0.291 | 0.492 | 0.620 | sig. (p < 0.001) |
 | B2: Recent Moving Average | 0.311 | 0.486 | 0.607 | — |
-| B3: DoY Seasonality | 0.305 | 0.475 | 0.587 | — |
+| B3: DoY Seasonality | 0.306 | 0.475 | 0.591 | — |
 | **Extra Trees** | 0.293 | 0.474 | 0.607 | sig. (p < 0.001) |
 | B0: Random | 0.060 | 0.126 | 0.186 | — |
 | Poisson-GLM | 0.020 | 0.027 | 0.029 | — |
@@ -78,30 +78,17 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | HierBayes | 0.262 | 0.431 | 0.577 | sig. (p = 0.003) |
 | B5: Recent MA + Seasonality | 0.261 | 0.427 | 0.568 | ns (p = 0.043, above the Bonferroni-corrected α = 0.0038) |
 | B2: Recent Moving Average | 0.265 | 0.418 | 0.538 | — |
-| B4: Static Prior + Seasonality | 0.240 | 0.418 | 0.541 | — |
+| B4: Static Prior + Seasonality | 0.244 | 0.417 | 0.541 | — |
 | B1: Static Prior | 0.251 | 0.405 | 0.530 | sig. (p < 0.001) |
 | **TTM** (IBM Granite 512-96-R2) | 0.227 | 0.395 | 0.516 | sig. (p < 0.001) |
-| B3: DoY Seasonality | 0.215 | 0.352 | 0.451 | — |
+| B3: DoY Seasonality | 0.216 | 0.352 | 0.451 | — |
 | **Extra Trees** | 0.183 | 0.326 | 0.470 | sig. (p < 0.001) |
 | B0: Random | 0.047 | 0.080 | 0.114 | — |
 | Poisson-GLM | 0.003 | 0.003 | 0.003 | — |
 
 *Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.155); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. TTM is significantly worse than B1 (Δ = −0.041, p = 0.0004). GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures.*
 
-*Each row reports a single run per method; no row mixes results from different runs. GLM-Logit and HierBayes Recall@K are recomputed from the released score files in `data/scores/` (`yamagata_glm_logit_scores_2025.npy`, SHA-256 `999e119c167fc22d…`; `yamagata_hier_mean_scores_2025.npy`, SHA-256 `af7b177712a1fa89…`); the released HierBayes file reproduces the paper's Recall@20 = 0.542 exactly, so no MCMC run-to-run mixing remains. Baselines B0–B5 are regenerated deterministically from `notebooks/kumawatch_benchmark.ipynb` Cell 5 (`RAND_SEED = 42`) over the documented training windows (Yamagata from 2018-10-01, Akita from 2022-04-01). TTM and Extra Trees Recall@K are recomputed from the released score CSVs. Poisson-GLM Recall@K is carried over from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs). One residual discrepancy: the released GLM-Logit score file yields Recall@20 = 0.546 (Yamagata), while the paper reports 0.547; the table keeps the paper's value, and the ±0.001 gap is not resolved by tie-breaking or float64 promotion.*
-
-### Confidence-Filtered Recall@20 (Yamagata — days ranked by prediction confidence)
-
-| Method | Top 25% days | Top 50% days | Top 75% days | All days |
-|--------|:------------:|:------------:|:------------:|:--------:|
-| HierBayes | 0.875 | **0.639** | 0.555 | 0.542 |
-| GLM-Logit | **0.889** | 0.619 | 0.548 | 0.547 |
-| TTM | 0.630 | 0.523 | 0.495 | 0.492 |
-| B5 | 0.542 | 0.541 | 0.531 | 0.534 |
-| B1 | 1.000 | 0.592 | 0.544 | 0.533 |
-| B2 | 0.150 | 0.416 | 0.458 | 0.486 |
-
-*The columns other than "All days" are computed on selected subsets of days and are **not** comparable with the all-days figures in the main results tables above; this table is reported separately for that reason. HierBayes exceeds GLM-Logit at the top-50% confidence subset (0.639 vs 0.619). This exploratory analysis concerns subsets of days ranked by prediction confidence and does not validate cell-level uncertainty for graduated alerts; our benchmark scores ranking under a fixed patrol budget only, and does not evaluate those downstream uses. B1's top-25% = 1.000 is a degenerate artifact: constant confidence scores cause argsort tie-breaking to select winter days, which have few valid sighting days — not evidence of genuine uncertainty quantification.*
+*Each row reports a single run per method; no row mixes results from different runs. GLM-Logit and HierBayes Recall@K are recomputed from the released score files in `data/scores/` (`yamagata_glm_logit_scores_2025.npy`, SHA-256 `999e119c167fc22d…`; `yamagata_hier_mean_scores_2025.npy`, SHA-256 `af7b177712a1fa89…`); the released HierBayes file reproduces the paper's Recall@20 = 0.542 exactly, so no MCMC run-to-run mixing remains. Baselines are regenerated deterministically from `notebooks/kumawatch_benchmark.ipynb` Cell 5 (`RAND_SEED = 42`); B0, B1, B2 and B5 use the documented training windows (Yamagata from 2018-10-01, Akita from 2022-04-01). B3 and B4 are reported as published, and were computed over the full data span (Yamagata from 2018-04-01, Akita from 2020-04-01) rather than the documented training start; recomputing them on the documented window gives Yamagata B3 0.305 / 0.475 / 0.587 and B4 0.320 / 0.517 / 0.644, Akita B3 0.215 / 0.352 / 0.451 and B4 0.240 / 0.418 / 0.541 — differences of at most 0.009 that leave every ordering and conclusion unchanged. TTM and Extra Trees Recall@K are recomputed from the released score CSVs. Poisson-GLM Recall@K is carried over from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs). One residual discrepancy: the released GLM-Logit score file yields Recall@20 = 0.546 (Yamagata), while the paper reports 0.547; the table keeps the paper's value, and the ±0.001 gap is not resolved by tie-breaking or float64 promotion.*
 
 ### Calibration Metrics
 
@@ -115,16 +102,20 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 *BSS (Brier Skill Score) > 0 indicates better calibration than the climatological baseline. B2 achieves the best Brier Skill Score of any method on both prefectures. ET is strongly miscalibrated (BSS = −1.63 on Yamagata), consistent with known behaviour of tree ensembles on probability estimation tasks. HierBayes and GLM-Logit are well-calibrated and similar (BSS ≈ 0.08 YGT, 0.28–0.30 AKT).*
 
-### Cross-Layer Divergence Analysis (Yamagata, Jaccard@20)
+### Cross-Method Top-K Agreement
 
-| Layer Pair | Jaccard@20 | Interpretation |
-|-----------|:----------:|----------------|
-| GLM-Logit vs HierBayes | 0.95 | Near-redundant rankings; HierBayes value is in posterior uncertainty (untested here) |
-| GLM-Logit vs TTM | 0.55 | Moderate disagreement; does not by itself establish useful complementarity |
-| HierBayes vs TTM | 0.50 | Similar level of disagreement |
-| GLM-Logit vs Extra Trees | 0.30 | Substantial disagreement; does not establish that ET provides useful complementary information |
+Pairwise Jaccard@K between the released methods is not tabulated here; it is
+computed on demand from the score files in `data/scores/`:
 
-*Low Jaccard agreement indicates different rankings, but disagreement alone is not evidence of useful complementarity. HierBayes' posterior variance as a confidence signal for graduated alerts, and ET's environmental covariates as an independent check on a recency-driven prediction, are untested rather than refuted by this benchmark.*
+```bash
+python scripts/crosslayer_jaccard.py --check
+```
+
+Rankings that disagree are not thereby complementary. HierBayes' posterior
+variance as a confidence signal for graduated alerts, and ET's environmental
+covariates as an independent check on a recency-driven prediction, are untested
+rather than refuted by this benchmark, which scores ranking under a fixed patrol
+budget only.
 
 ---
 
@@ -236,7 +227,7 @@ Calibration metrics (per-cell, averaged over cells with ≥1 sighting in evaluat
 
 Ranking metrics: per-cell **ROC-AUC**, **PR-AUC**.
 
-Confidence-filtered evaluation: Recall@K computed on the top-N% of days ranked by mean prediction confidence (posterior standard deviation for HierBayes; |score − 0.5| for point-prediction methods).
+Cross-method agreement: **Jaccard@K** between the top-K cell sets of two methods, averaged over days (`scripts/crosslayer_jaccard.py`).
 
 ---
 
