@@ -18,7 +18,7 @@
 | [**🗺️ KumaWatch Landing Page**](https://todalaba.github.io/KumaWatch/) | System overview and links to the interactive maps |
 | [**▶ Multi-Method Benchmark Map (2025)**](https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
 
-To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern browser (single self-contained HTML file, no external dependencies).
+To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern browser: a single HTML file requiring no server, no installation and no external API. All predictions are embedded in the file. Leaflet and the OpenStreetMap base tiles are fetched from their public CDNs at load time, so an internet connection is needed for the map furniture — but never for a prediction.
 
 ---
 
@@ -32,7 +32,9 @@ Human–bear conflicts in northern Japan have escalated sharply, with **publicly
 
 ## Abstract
 
-We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day held-out year (2025), with measured computational cost reported alongside each predictive-performance estimate.
+We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day held-out year (2025), with measured per-day computational cost — fitting, refitting or inference as applicable — reported alongside each predictive-performance estimate.
+
+In the benchmark itself each learned method is fitted once on data through 2024-12-31 and then scores all 365 evaluation days; the cost column states what one day of operation would cost a municipality that refreshed the model on that cadence, which is the quantity a procurement decision turns on.
 
 **Central finding (negative and procurement-relevant):** IBM Granite TTM requires ~4 hours of API inference per day and is significantly *worse* than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0004). A 30-minute MCMC pipeline (HierBayes) yields no Recall@20 improvement over a sub-30-second logistic regression on Yamagata (*p* = 0.624) and is significantly worse on Akita (*p* = 0.003). On Yamagata — the primary evaluation setting — GLM-Logit's margin over the static prior B1 does not approach significance (+0.014, *p* = 0.155).
 
@@ -42,13 +44,13 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 ## Key Contributions
 
-1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day held-out windows across two prefectures, with measured daily computational cost (training, refitting, and inference) beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
+1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day held-out windows across two prefectures, with measured per-day computational cost — fitting, refitting or inference as applicable — beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
 
 2. **Negative result with operational reading** — Neither foundation-model inference (~4 h/day) nor MCMC (~30 min/day) buys top-K accuracy over far cheaper alternatives. On Yamagata, GLM-Logit's lead over the static prior is not significant (*p* = 0.155). Extra Trees is strongly miscalibrated (BSS = −1.63). These are null results about ranking only; downstream uses of HierBayes posterior variance and ET environmental covariates are untested rather than refuted.
 
-3. **Browser-based decision-support prototype** — A single-file Leaflet map (no server, no API) serving pre-computed GLM-Logit predictions for all 144 Yamagata cells × 365 days, with four risk tiers and a user-adjustable threshold. Architecture follows directly from Table 1's cost column.
+3. **Browser-based decision-support prototype** — A single-file Leaflet map (no server-side computation, no external API) serving pre-computed scores for GLM-Logit, HierBayes, TTM and Extra Trees across all 144 Yamagata cells × 365 days, with GLM-Logit as the default decision layer, four risk tiers and a user-adjustable threshold. Architecture follows directly from Table 1's cost column.
 
-4. **Open benchmark release** — Complete codebase, benchmark data (Yamagata 144 cells + Akita 260 cells), pre-computed score files (GLM-Logit, HierBayes, ET, TTM), and evaluation notebooks under Apache 2.0 and CC-BY 4.0 licenses.
+4. **Open benchmark release** — Complete codebase, benchmark data (Yamagata 144 cells + Akita 260 cells), pre-computed score files for all four learned methods on both prefectures (GLM-Logit, HierBayes, ET, TTM), and evaluation notebooks under Apache 2.0 and CC-BY 4.0 licenses.
 
 ---
 
@@ -62,10 +64,10 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | HierBayes | 0.328 | 0.542 | 0.692 | ns (p = 0.624) |
 | B5: Recent MA + Seasonality | 0.333 | 0.534 | 0.660 | ns (p = 0.310) |
 | B1: Static Prior | 0.286 | 0.533 | 0.659 | ns (p = 0.155) |
-| B4: Static Prior + Seasonality | 0.315 | 0.523 | 0.653 | — |
+| B4: Static Prior + Seasonality | 0.320 | 0.517 | 0.644 | — |
 | **TTM** (IBM Granite 1536-96-R2) | 0.291 | 0.492 | 0.620 | sig. (p < 0.001) |
 | B2: Recent Moving Average | 0.311 | 0.486 | 0.607 | — |
-| B3: DoY Seasonality | 0.306 | 0.475 | 0.591 | — |
+| B3: DoY Seasonality | 0.305 | 0.475 | 0.587 | — |
 | **Extra Trees** | 0.293 | 0.474 | 0.607 | sig. (p < 0.001) |
 | B0: Random | 0.060 | 0.126 | 0.186 | — |
 | Poisson-GLM | 0.020 | 0.027 | 0.029 | — |
@@ -78,17 +80,17 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | HierBayes | 0.262 | 0.431 | 0.577 | sig. (p = 0.003) |
 | B5: Recent MA + Seasonality | 0.261 | 0.427 | 0.568 | ns (p = 0.043, above the Bonferroni-corrected α = 0.0038) |
 | B2: Recent Moving Average | 0.265 | 0.418 | 0.538 | — |
-| B4: Static Prior + Seasonality | 0.244 | 0.417 | 0.541 | — |
+| B4: Static Prior + Seasonality | 0.240 | 0.418 | 0.541 | — |
 | B1: Static Prior | 0.251 | 0.405 | 0.530 | sig. (p < 0.001) |
 | **TTM** (IBM Granite 512-96-R2) | 0.227 | 0.395 | 0.516 | sig. (p < 0.001) |
-| B3: DoY Seasonality | 0.216 | 0.352 | 0.451 | — |
+| B3: DoY Seasonality | 0.215 | 0.352 | 0.451 | — |
 | **Extra Trees** | 0.183 | 0.326 | 0.470 | sig. (p < 0.001) |
 | B0: Random | 0.047 | 0.080 | 0.114 | — |
 | Poisson-GLM | 0.003 | 0.003 | 0.003 | — |
 
 *Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.155); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. TTM is significantly worse than B1 (Δ = −0.041, p = 0.0004). GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures.*
 
-*Each row reports a single run per method; no row mixes results from different runs. GLM-Logit and HierBayes Recall@K are recomputed from the released score files in `data/scores/` (`yamagata_glm_logit_scores_2025.npy`, SHA-256 `2de6593f4169b98e…`; `yamagata_hier_mean_scores_2025.npy`, SHA-256 `726fbeed366a7240…`). Both reproduce the paper's Recall@20 exactly — GLM-Logit 0.5470 and HierBayes 0.5425 — and the GLM-Logit file also reproduces the Precision@20 = 0.244 quoted in Section 6 (0.2446), so no run-to-run mixing remains. Baselines are regenerated deterministically from `notebooks/kumawatch_benchmark.ipynb` Cell 5 (`RAND_SEED = 42`); B0, B1, B2 and B5 use the documented training windows (Yamagata from 2018-10-01, Akita from 2022-04-01). B3 and B4 are reported as published, and were computed over the full data span (Yamagata from 2018-04-01, Akita from 2020-04-01) rather than the documented training start; recomputing them on the documented window gives Yamagata B3 0.305 / 0.475 / 0.587 and B4 0.320 / 0.517 / 0.644, Akita B3 0.215 / 0.352 / 0.451 and B4 0.240 / 0.418 / 0.541 — differences of at most 0.009 that leave every ordering and conclusion unchanged. TTM and Extra Trees Recall@K are recomputed from the released score CSVs. Poisson-GLM Recall@K is carried over from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs).*
+*Each row reports a single run per method; no row mixes results from different runs. GLM-Logit and HierBayes Recall@K are recomputed from the released score files in `data/scores/` (`yamagata_glm_logit_scores_2025.npy`, SHA-256 `2de6593f4169b98e…`; `yamagata_hier_mean_scores_2025.npy`, SHA-256 `726fbeed366a7240…`). Both reproduce the paper's Recall@20 exactly — GLM-Logit 0.5470 and HierBayes 0.5425 — and the GLM-Logit file also reproduces the Precision@20 = 0.244 quoted in Section 6 (0.2446), so no run-to-run mixing remains. All six baselines are regenerated deterministically from `notebooks/kumawatch_benchmark.ipynb` Cell 5 (`RAND_SEED = 42`) over the training windows documented above — Yamagata from 2018-10-01, Akita from 2022-04-01 — so every method in these tables shares one training period. (An earlier release computed B3 and B4 over the full data span instead, giving Yamagata B4 = 0.523 and Akita B4 = 0.417; those values are superseded.) TTM and Extra Trees Recall@K are recomputed from the released score CSVs. Poisson-GLM Recall@K is carried over from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs).*
 
 ### Calibration Metrics
 
@@ -174,7 +176,7 @@ KumaWatch/
 │   ├── crosslayer_jaccard.py              # Cross-method Jaccard@K from released score files
 │   └── table2_significance.py             # Reproduces the paper's pairwise significance table
 ├── maps/
-│   ├── kumawatch_primary_layer.html       # Three-layer interactive web map (2025) — self-contained HTML
+│   ├── kumawatch_primary_layer.html       # Four-method interactive web map (2025) — predictions embedded
 │   └── kumawatch_complementary_layer.html # Complementary-layer focused map view
 ├── data/
 │   ├── yamagata_10km_daily_timeseries.csv # 144 cells × daily sightings (Apr 2018–Dec 2025; training from Oct 2018)
@@ -246,7 +248,7 @@ pip install scikit-learn pandas numpy scipy
 pip install pymc numpyro
 
 # Visualization
-# Maps are self-contained HTML (no server required)
+# Maps are single HTML files (no server required; Leaflet and OSM tiles load from their CDNs)
 ```
 
 ### View the web maps
@@ -338,7 +340,7 @@ reported. No model needs to be rerun.
 python scripts/generate_kumawatch_webmap.py
 ```
 
-Outputs `kumawatch_map_2025.html` (self-contained, ~1.5 MB). Requires pre-computed TTM score CSV at the path configured in the script header.
+Outputs `kumawatch_map_2025.html` (~1.5 MB, all predictions embedded; Leaflet and OSM tiles load from their CDNs). Requires pre-computed TTM score CSV at the path configured in the script header.
 
 ---
 
