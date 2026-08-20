@@ -5,7 +5,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![ACM SIGSPATIAL 2026](https://img.shields.io/badge/ACM%20SIGSPATIAL-2026-red.svg)](https://sigspatial.acm.org/)
-[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen.svg)](https://todalaba.github.io/KumaWatch/)
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen.svg)](https://global-jogasaki.github.io/KumaWatch/)
 
 ---
 
@@ -15,8 +15,8 @@
 
 | Link | Description |
 |------|-------------|
-| [**🗺️ KumaWatch Landing Page**](https://todalaba.github.io/KumaWatch/) | System overview and links to the interactive maps |
-| [**▶ Multi-Method Benchmark Map (2025)**](https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
+| [**🗺️ KumaWatch Landing Page**](https://global-jogasaki.github.io/KumaWatch/) | System overview and links to the interactive maps |
+| [**▶ Multi-Method Benchmark Map (2025)**](https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
 
 To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern browser: a single HTML file requiring no server, no installation and no external API. All predictions are embedded in the file. Leaflet and the OpenStreetMap base tiles are fetched from their public CDNs at load time, so an internet connection is needed for the map furniture — but never for a prediction.
 
@@ -256,7 +256,7 @@ pip install pymc numpyro
 Open the live demo in your browser — no installation needed:
 
 ```
-https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html
+https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html
 ```
 
 Or open `maps/kumawatch_primary_layer.html` locally in any modern browser.

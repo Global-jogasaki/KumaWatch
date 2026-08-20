@@ -7,7 +7,7 @@ description: KumaWatchのインタラクティブWebマップ(三層マップ ku
 
 Leaflet.js ベースの自己完結型 HTML マップ(10kmグリッド、365日スライダー、レイヤー切替)を生成する。
 
-- 公開デモ: https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html
+- 公開デモ: https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html
 - リポジトリ内成果物: `maps/kumawatch_primary_layer.html`(三層)/ `maps/kumawatch_complementary_layer.html`(補完層ビュー)
 
 **注意**: `kumawatch_complementary_layer.html` を生成するスクリプトは**リポジトリに含まれていない**(作者環境で生成された成果物のみコミットされている)。再生成できるのは三層マップ(下記1)だけ。補完層ビューを更新する必要が出たら、三層マップ生成スクリプトを流用して補完層のみのバリアントを作るのが現実的。
@@ -74,4 +74,4 @@ git commit -m "Update primary layer web map"
 git push origin main
 ```
 
-反映後 https://todalaba.github.io/KumaWatch/ で確認。
+反映後 https://global-jogasaki.github.io/KumaWatch/ で確認。
