@@ -16,7 +16,7 @@
 | Link | Description |
 |------|-------------|
 | [**🗺️ KumaWatch Landing Page**](https://todalaba.github.io/KumaWatch/) | System overview and links to the interactive maps |
-| [**▶ Three-Layer Prediction Map (2025)**](https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
+| [**▶ Multi-Method Benchmark Map (2025)**](https://todalaba.github.io/KumaWatch/maps/kumawatch_primary_layer.html) | Switch between GLM-Logit / HierBayes / TTM / Extra Trees layers. 365-day date slider, click any cell for a detailed stats panel |
 
 To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern browser (single self-contained HTML file, no external dependencies).
 
