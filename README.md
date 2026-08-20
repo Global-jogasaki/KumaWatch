@@ -179,7 +179,8 @@ KumaWatch/
 │   ├── et_benchmark_akita.py              # Extra Trees benchmark — Akita
 │   ├── generate_kumawatch_webmap.py       # Three-layer map generator (GLM-Logit, HierBayes, TTM, ET)
 │   ├── generate_glm_webmap.py             # GLM-Logit single-layer map generator
-│   └── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
+│   ├── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
+│   └── crosslayer_jaccard.py              # Cross-method Jaccard@K from released score files
 ├── maps/
 │   ├── kumawatch_primary_layer.html       # Three-layer interactive web map (2025) — self-contained HTML
 │   └── kumawatch_complementary_layer.html # Complementary-layer focused map view
@@ -311,6 +312,18 @@ Open `notebooks/kumawatch_benchmark.ipynb` in Jupyter or Google Colab. Set the s
 python scripts/calibration_validation.py --prefecture yamagata
 python scripts/calibration_validation.py --prefecture akita
 ```
+
+### Verify cross-method top-K agreement
+
+```bash
+python scripts/crosslayer_jaccard.py --check
+```
+
+Recomputes Jaccard@K between every pair of released methods straight from
+`data/scores/`, for both all days and sighting days. `--check` first verifies
+that each score file reproduces its Recall@20 from the results table, so a
+mismatched or misaligned score file is caught before the agreement figures are
+reported. No model needs to be rerun.
 
 ### Generate the web map
 
