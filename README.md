@@ -174,7 +174,8 @@ KumaWatch/
 │   ├── generate_glm_webmap.py             # GLM-Logit single-layer map generator
 │   ├── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
 │   ├── crosslayer_jaccard.py              # Cross-method Jaccard@K from released score files
-│   └── table2_significance.py             # Reproduces the paper's pairwise significance table
+│   ├── table2_significance.py             # Reproduces the paper's pairwise significance table
+│   └── daily_diagnostics.py               # Precision@K, ROC-AUC variants, per-day TP/FP/FN
 ├── maps/
 │   ├── kumawatch_primary_layer.html       # Four-method interactive web map (2025) — predictions embedded
 │   └── kumawatch_complementary_layer.html # Complementary-layer focused map view
@@ -308,6 +309,35 @@ Open `notebooks/kumawatch_benchmark.ipynb` in Jupyter or Google Colab. Set the s
 python scripts/calibration_validation.py --prefecture yamagata
 python scripts/calibration_validation.py --prefecture akita
 ```
+
+### Supplementary diagnostics
+
+```bash
+pip install -r requirements-diagnostics.txt
+python scripts/daily_diagnostics.py
+```
+
+Produces the Precision@K, ROC-AUC and per-day case tables published on the
+landing page, plus `results/daily_diagnostics_<pref>_2025.csv` — 3,650 method-day
+rows per prefecture giving, for each day and method, the positive-cell count,
+Recall@20, Precision@20, the true-positive / false-positive / false-negative cell
+ids, and the pairwise top-20 agreement with every other method.
+
+Coverage is ten of the paper's eleven methods: the four learned methods from
+released score matrices, and B0–B5 regenerated deterministically from Cell 5 of
+the benchmark notebook. Poisson-GLM has no released score matrix.
+
+Two conventions matter and are stated on the page as well. Precision@K is
+reported twice — over sighting days (the set the paper reports, where Recall@K is
+defined) and over all 365 days — and the two are never combined into one
+aggregate. ROC-AUC is reported under three definitions (pooled cell-day, mean
+daily cross-sectional, mean per-cell temporal) because they answer different
+questions; it is a supplementary threshold-free diagnostic and does not replace
+Recall@K or Precision@K, which correspond to the fixed daily patrol budget.
+
+These analyses are retrospective comparisons against the held-out 2025 labels.
+They are not a post-deployment evaluation: no patrol routes, deployment period or
+control municipality exist in this dataset.
 
 ### Reproduce the significance table
 

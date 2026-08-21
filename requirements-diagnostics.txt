@@ -1,0 +1,17 @@
+# Environment used to produce the supplementary diagnostics published on the
+# landing page and in results/daily_diagnostics_*.csv.
+#
+#   python scripts/daily_diagnostics.py
+#   python scripts/table2_significance.py
+#   python scripts/crosslayer_jaccard.py --check
+#
+# Recall@K, Precision@K and the top-K selection depend on how ties at the K-th
+# position are broken, which is left to numpy.argpartition. Pinning these
+# versions is what makes the published tables reproducible value for value.
+#
+# Python 3.10.10
+
+numpy==2.2.6
+pandas==2.2.3
+scikit-learn==1.6.1
+scipy==1.15.2
