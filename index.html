@@ -239,14 +239,14 @@ code{font-family:'SFMono-Regular',Consolas,monospace;font-size:.9em;background:#
     <div class="sub">Ten methods with aligned daily score matrices · 3,650 method-day rows per prefecture</div>
   </div>
   <p class="lead">For each of the ten methods with released or deterministically regenerated 2025 cell-day score matrices, the repository publishes the predicted top-20 cells beside the cells that actually reported a sighting, decomposed into true positives, false positives and false negatives, with the pairwise top-20 agreement between methods. This produces 3,650 method-day rows per prefecture in <code>results/daily_diagnostics_&lt;pref&gt;_2025.csv</code>.</p>
-  <p class="lead">The cases below are selected automatically by the stated deterministic criteria rather than manually chosen for favourable visual appearance. The set intentionally includes both failure and relatively favourable cases.</p>
+  <p class="lead">The cases below are selected automatically by the stated deterministic criteria rather than manually chosen for favourable visual appearance. The set intentionally includes both low-performing and relatively favourable cases.</p>
   <div class="tscroll">
     <table>
       <thead><tr><th>Selection criterion</th><th>Date</th><th>Sighting cells</th><th>GLM-Logit R@20</th><th>Static prior R@20</th><th>Jaccard@20 GLM vs ET</th></tr></thead>
       <tbody>
         <tr><td>Most sightings in 2025</td><td>2025-10-15</td><td class="n">30</td><td class="n">0.467</td><td class="n">0.433</td><td class="n">0.538</td></tr>
         <tr><td>Median GLM-Logit Recall@20</td><td>2025-06-27</td><td class="n">19</td><td class="n">0.526</td><td class="n">0.526</td><td class="n">0.481</td></tr>
-        <tr><td>Worst GLM-Logit Recall@20</td><td>2025-01-01</td><td class="n">1</td><td class="n warn">0.000</td><td class="n">1.000</td><td class="n">0.739</td></tr>
+        <tr><td>Lowest GLM-Logit Recall@20</td><td>2025-01-01</td><td class="n">1</td><td class="n warn">0.000</td><td class="n">1.000</td><td class="n">0.739</td></tr>
         <tr><td>Largest GLM-Logit − static-prior gap</td><td>2025-06-24</td><td class="n">6</td><td class="n">0.833</td><td class="n">0.333</td><td class="n">0.481</td></tr>
         <tr><td>Lowest GLM-Logit vs ET agreement</td><td>2025-07-09</td><td class="n">10</td><td class="n">0.700</td><td class="n">0.800</td><td class="n warn">0.379</td></tr>
       </tbody>

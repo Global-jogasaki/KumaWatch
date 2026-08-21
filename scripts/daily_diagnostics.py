@@ -12,8 +12,8 @@ Emits, from the released score files in `data/scores/` and nothing else:
   3. Three ROC-AUC variants, which answer three different questions and must not
      be collapsed into one number.
   4. Case-study days chosen automatically by the deterministic criteria below,
-     rather than picked by hand. The set includes both failure and relatively
-     favourable cases.
+     rather than picked by hand. The set includes both low-performing and
+     relatively favourable cases.
 
 Coverage: ten of the paper's eleven methods. The four learned methods come from
 released score matrices; B0-B5 are regenerated deterministically from Cell 5 of
@@ -246,10 +246,10 @@ def write_daily_csv(pref, scores, labels, cells, dates, k=20):
 
 
 def case_days(scores, labels, dates, k=20):
-    """Case studies chosen by fixed criteria declared before looking at a map.
+    """Case studies chosen by deterministic criteria rather than by hand.
 
-    The worst day and the largest cross-method disagreement are included by
-    construction, so the selection cannot be read as a highlight reel.
+    The lowest-scoring day and the largest cross-method disagreement are
+    included by construction, so the selection cannot be read as a highlight reel.
     """
     _, npos, rec_glm, _ = per_day(scores["GLM-Logit"], labels, k)
     _, _, rec_b1, _ = per_day(scores["B1: Static prior"], labels, k)
@@ -265,7 +265,7 @@ def case_days(scores, labels, dates, k=20):
     picks = [
         ("most sightings in 2025", pick(npos.astype(float), "max")),
         ("median GLM-Logit Recall@20", pick(-np.abs(rec_glm - med), "max")),
-        ("worst GLM-Logit Recall@20", pick(rec_glm, "min")),
+        ("lowest GLM-Logit Recall@20", pick(rec_glm, "min")),
         ("largest GLM-Logit − static-prior gap", pick(rec_glm - rec_b1, "max")),
         ("lowest GLM-Logit vs ET agreement", pick(jac_et, "min")),
     ]
@@ -323,7 +323,8 @@ def report(pref, write_csv=True):
     print(f"  (daily AUC averaged over {v0['n_days_scored']} days with a mixed "
           f"outcome; per-cell over {v0['n_cells_scored']} cells)")
 
-    print("\nCase-study days — criteria fixed in advance, failures included")
+    print("\nCase-study days — deterministic criteria, including "
+          "low-performing and relatively favourable cases")
     for c in case_days(scores, labels, dates):
         print(f"  {c['criterion']:38s} {c['date']}  "
               f"positives={c['n_positive']:3d}  "

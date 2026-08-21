@@ -42,7 +42,8 @@ paper and in the top-level README:
 
 The Extra Trees files also reproduce the reported calibration figures
 (Yamagata Brier = 0.097, BSS = −1.63), and `yamagata_glm_logit_scores_2025.npy`
-reproduces the Precision@20 = 0.244 quoted in Section 6 of the paper (0.2446).
+reproduces Precision@20 = 0.2446, reported as 0.245 to three decimals in Section 6
+of the paper.
 
 ### ⚠️ The HierBayes posterior standard deviation does not pair with the mean
 
