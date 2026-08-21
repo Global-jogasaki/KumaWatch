@@ -17,7 +17,7 @@ TTM paper reported results (表1・表2, 城ヶ﨑 2025):
   K=30: Precision= 9.4%, Recall=55.4%
   Seasonal K=20: Spring 4.6%/58.8%, Summer 20.3%/54.2%,
                  Fall 31.4%/48.1%, Winter 0.4%/96.3%
-  Train: 2018-10 ─ 2024-12 (1,536 days)
+  Train: 2018-10 ─ 2024-12 (~2,284 days)
   Test:  2025-01 ─ 2025-12 (365 days)
 """
 import sys, io

@@ -17,13 +17,15 @@ Data source: Yamagata and Akita prefectural wildlife observation databases (publ
 
 | File | Prefecture | Cells | Period | Size |
 |------|-----------|-------|--------|------|
-| `yamagata_10km_daily_timeseries.csv` | Yamagata | 144 | Oct 2018 – Dec 2025 | ~915 KB |
-| `akita_10km_daily_timeseries.csv` | Akita | 260 | Apr 2022 – Dec 2025 | ~1.17 MB |
+| `yamagata_10km_daily_timeseries.csv` | Yamagata | 144 | Apr 2018 – Dec 2025 | ~915 KB |
+| `akita_10km_daily_timeseries.csv` | Akita | 260 | Apr 2020 – Dec 2025 | ~1.17 MB |
 
-**Columns:**
-- `date` — ISO 8601 date (YYYY-MM-DD)
-- `grid_id` — Integer cell ID (0-indexed)
-- `sightings` — Number of bear sightings recorded in that cell on that date
+**Format (wide):** one row per date, one column per grid cell.
+
+- `Date` — date (e.g., `2018/4/11`; parse with `pd.to_datetime(..., format='mixed')`)
+- `Year`, `Month`, `Week`, `Weekday` — calendar metadata columns
+- `{col}_{row}` — one column per grid cell (e.g., `0_0`, `1_0`, ..., `8_15` for Yamagata); value = number of bear sightings recorded in that cell on that date
+- `Sum` — total sightings across all cells on that date
 
 ### Grid Coordinates
 
@@ -33,10 +35,10 @@ Data source: Yamagata and Akita prefectural wildlife observation databases (publ
 | `akita_10km_grid_coords.csv` | Akita | 260 |
 
 **Columns:**
-- `grid_id` — Integer cell ID (0-indexed), matches `grid_id` in daily time series
-- `lat` — Latitude of grid cell center (decimal degrees)
-- `lon` — Longitude of grid cell center (decimal degrees)
-- `municipality` — Japanese municipality name (市区町村) overlapping the cell
+- `Grid_ID` — cell ID in `{col}_{row}` format (e.g., `0_0`), matches the cell column names in the daily time series CSVs
+- `Grid_Row`, `Grid_Col` — 0-indexed row / column indices
+- `Center_Latitude`, `Center_Longitude` — grid cell center (decimal degrees)
+- `Min_Latitude`, `Max_Latitude`, `Min_Longitude`, `Max_Longitude` — cell bounding box (decimal degrees)
 
 ---
 
