@@ -4,64 +4,66 @@ All 55 unordered pairs among the eleven benchmarked methods, at K = 20, on the 2
 
 Δ is the mean per-day difference in Recall@20 (first method minus second); the interval is a day-level paired bootstrap (B = 5,000) and *p* a day-level sign-flip permutation test (P = 5,000), both seeded with 42 — the same procedure as Table 2 of the paper.
 
-Bonferroni over the 55 pairs in this family: α = 0.00091. Table 2 uses α = 0.0038 over its own family of thirteen. Rows are sorted by *p*.
+Two Bonferroni thresholds are reported, because the answer depends on which family the comparison is read as part of. **This family** is the 55 pairs in this table, α = 0.00091. **Table 2** of the paper corrects over its own family of thirteen, α = 0.0038, and that is the column to use when checking a claim made in the paper. Rows are sorted by *p*.
 
-| Comparison | Δ | 95% CI | *p* | Bonferroni sig. |
-|------------|--:|:------:|----:|:---------------:|
-| B0: Random vs B1: Static prior | -0.4075 | [-0.4411, -0.3737] | 0.0002 | yes |
-| B0: Random vs B2: Recent MA | -0.3601 | [-0.3972, -0.3239] | 0.0002 | yes |
-| B0: Random vs B3: DoY season | -0.3492 | [-0.3836, -0.3146] | 0.0002 | yes |
-| B0: Random vs B4: B1+B3 | -0.3915 | [-0.4243, -0.3579] | 0.0002 | yes |
-| B0: Random vs B5: B2+B3 | -0.4085 | [-0.4434, -0.3721] | 0.0002 | yes |
-| B0: Random vs ET | -0.3483 | [-0.3804, -0.3167] | 0.0002 | yes |
-| B0: Random vs GLM-Logit | -0.4214 | [-0.4555, -0.3862] | 0.0002 | yes |
-| B0: Random vs HierBayes | -0.4169 | [-0.4508, -0.3817] | 0.0002 | yes |
-| B0: Random vs Poisson-GLM | +0.0989 | [+0.0768, +0.1227] | 0.0002 | yes |
-| B0: Random vs TTM | -0.3660 | [-0.4000, -0.3319] | 0.0002 | yes |
-| B1: Static prior vs B3: DoY season | +0.0582 | [+0.0326, +0.0853] | 0.0002 | yes |
-| B1: Static prior vs ET | +0.0592 | [+0.0386, +0.0827] | 0.0002 | yes |
-| B3: DoY season vs HierBayes | -0.0676 | [-0.0998, -0.0362] | 0.0002 | yes |
-| B3: DoY season vs B4: B1+B3 | -0.0423 | [-0.0666, -0.0211] | 0.0002 | yes |
-| B2: Recent MA vs GLM-Logit | -0.0613 | [-0.0967, -0.0279] | 0.0002 | yes |
-| B1: Static prior vs Poisson-GLM | +0.5064 | [+0.4744, +0.5383] | 0.0002 | yes |
-| B3: DoY season vs B5: B2+B3 | -0.0593 | [-0.0843, -0.0344] | 0.0002 | yes |
-| B3: DoY season vs GLM-Logit | -0.0722 | [-0.1021, -0.0428] | 0.0002 | yes |
-| B2: Recent MA vs Poisson-GLM | +0.4590 | [+0.4270, +0.4912] | 0.0002 | yes |
-| ET vs GLM-Logit | -0.0731 | [-0.0975, -0.0493] | 0.0002 | yes |
-| ET vs Poisson-GLM | +0.4472 | [+0.4165, +0.4786] | 0.0002 | yes |
-| GLM-Logit vs Poisson-GLM | +0.5203 | [+0.4863, +0.5530] | 0.0002 | yes |
-| Poisson-GLM vs TTM | -0.4649 | [-0.4975, -0.4322] | 0.0002 | yes |
-| HierBayes vs Poisson-GLM | +0.5158 | [+0.4830, +0.5477] | 0.0002 | yes |
-| GLM-Logit vs TTM | +0.0554 | [+0.0326, +0.0792] | 0.0002 | yes |
-| B5: B2+B3 vs ET | +0.0603 | [+0.0307, +0.0886] | 0.0002 | yes |
-| ET vs HierBayes | -0.0686 | [-0.0922, -0.0449] | 0.0002 | yes |
-| B3: DoY season vs Poisson-GLM | +0.4482 | [+0.4161, +0.4808] | 0.0002 | yes |
-| B4: B1+B3 vs Poisson-GLM | +0.4904 | [+0.4584, +0.5233] | 0.0002 | yes |
-| B5: B2+B3 vs Poisson-GLM | +0.5075 | [+0.4736, +0.5398] | 0.0002 | yes |
-| HierBayes vs TTM | +0.0508 | [+0.0236, +0.0783] | 0.0004 | yes |
-| B4: B1+B3 vs ET | +0.0433 | [+0.0203, +0.0678] | 0.0004 | yes |
-| B1: Static prior vs TTM | +0.0414 | [+0.0185, +0.0660] | 0.0006 | yes |
-| B2: Recent MA vs B5: B2+B3 | -0.0484 | [-0.0766, -0.0234] | 0.0008 | yes |
-| B2: Recent MA vs HierBayes | -0.0568 | [-0.0912, -0.0240] | 0.0010 | no |
-| B4: B1+B3 vs GLM-Logit | -0.0299 | [-0.0504, -0.0089] | 0.0038 | no |
-| B5: B2+B3 vs TTM | +0.0425 | [+0.0101, +0.0734] | 0.0096 | no |
-| B1: Static prior vs B2: Recent MA | +0.0473 | [+0.0109, +0.0873] | 0.0114 | no |
-| B4: B1+B3 vs HierBayes | -0.0253 | [-0.0481, -0.0014] | 0.0394 | no |
-| B1: Static prior vs B4: B1+B3 | +0.0159 | [+0.0007, +0.0310] | 0.0408 | no |
-| B4: B1+B3 vs TTM | +0.0255 | [+0.0011, +0.0517] | 0.0476 | no |
-| B2: Recent MA vs B4: B1+B3 | -0.0314 | [-0.0706, +0.0059] | 0.1134 | no |
-| B1: Static prior vs GLM-Logit | -0.0139 | [-0.0322, +0.0062] | 0.1576 | no |
-| ET vs TTM | -0.0178 | [-0.0441, +0.0081] | 0.1862 | no |
-| B3: DoY season vs TTM | -0.0168 | [-0.0453, +0.0102] | 0.2426 | no |
-| B4: B1+B3 vs B5: B2+B3 | -0.0170 | [-0.0441, +0.0130] | 0.2452 | no |
-| B5: B2+B3 vs GLM-Logit | -0.0129 | [-0.0404, +0.0129] | 0.3535 | no |
-| B1: Static prior vs HierBayes | -0.0094 | [-0.0321, +0.0137] | 0.4385 | no |
-| B5: B2+B3 vs HierBayes | -0.0083 | [-0.0332, +0.0147] | 0.5157 | no |
-| B2: Recent MA vs ET | +0.0119 | [-0.0263, +0.0474] | 0.5405 | no |
-| B2: Recent MA vs B3: DoY season | +0.0109 | [-0.0281, +0.0479] | 0.5783 | no |
-| GLM-Logit vs HierBayes | +0.0045 | [-0.0125, +0.0225] | 0.6215 | no |
-| B2: Recent MA vs TTM | -0.0059 | [-0.0472, +0.0319] | 0.7656 | no |
-| B1: Static prior vs B5: B2+B3 | -0.0011 | [-0.0276, +0.0276] | 0.9356 | no |
-| B3: DoY season vs ET | +0.0010 | [-0.0286, +0.0300] | 0.9502 | no |
+The two disagree on 2 of the 55 pairs — those with *p* between 0.00091 and 0.0038, which the stricter family-wide threshold rejects. Among them on Akita is HierBayes against GLM-Logit (*p* = 0.0026), the comparison Section 6 describes as significantly worse; it is significant at the paper's threshold and not at this table's.
+
+| Comparison | Δ | 95% CI | *p* | Sig. (this family, α = 0.00091) | Sig. (paper, α = 0.0038) |
+|------------|--:|:------:|----:|:------------------:|:-----------------------:|
+| B0: Random vs B1: Static prior | -0.4075 | [-0.4411, -0.3737] | 0.0002 | yes | yes |
+| B0: Random vs B2: Recent MA | -0.3601 | [-0.3972, -0.3239] | 0.0002 | yes | yes |
+| B0: Random vs B3: DoY season | -0.3492 | [-0.3836, -0.3146] | 0.0002 | yes | yes |
+| B0: Random vs B4: B1+B3 | -0.3915 | [-0.4243, -0.3579] | 0.0002 | yes | yes |
+| B0: Random vs B5: B2+B3 | -0.4085 | [-0.4434, -0.3721] | 0.0002 | yes | yes |
+| B0: Random vs ET | -0.3483 | [-0.3804, -0.3167] | 0.0002 | yes | yes |
+| B0: Random vs GLM-Logit | -0.4214 | [-0.4555, -0.3862] | 0.0002 | yes | yes |
+| B0: Random vs HierBayes | -0.4169 | [-0.4508, -0.3817] | 0.0002 | yes | yes |
+| B0: Random vs Poisson-GLM | +0.0989 | [+0.0768, +0.1227] | 0.0002 | yes | yes |
+| B0: Random vs TTM | -0.3660 | [-0.4000, -0.3319] | 0.0002 | yes | yes |
+| B1: Static prior vs B3: DoY season | +0.0582 | [+0.0326, +0.0853] | 0.0002 | yes | yes |
+| B1: Static prior vs ET | +0.0592 | [+0.0386, +0.0827] | 0.0002 | yes | yes |
+| B3: DoY season vs HierBayes | -0.0676 | [-0.0998, -0.0362] | 0.0002 | yes | yes |
+| B3: DoY season vs B4: B1+B3 | -0.0423 | [-0.0666, -0.0211] | 0.0002 | yes | yes |
+| B2: Recent MA vs GLM-Logit | -0.0613 | [-0.0967, -0.0279] | 0.0002 | yes | yes |
+| B1: Static prior vs Poisson-GLM | +0.5064 | [+0.4744, +0.5383] | 0.0002 | yes | yes |
+| B3: DoY season vs B5: B2+B3 | -0.0593 | [-0.0843, -0.0344] | 0.0002 | yes | yes |
+| B3: DoY season vs GLM-Logit | -0.0722 | [-0.1021, -0.0428] | 0.0002 | yes | yes |
+| B2: Recent MA vs Poisson-GLM | +0.4590 | [+0.4270, +0.4912] | 0.0002 | yes | yes |
+| ET vs GLM-Logit | -0.0731 | [-0.0975, -0.0493] | 0.0002 | yes | yes |
+| ET vs Poisson-GLM | +0.4472 | [+0.4165, +0.4786] | 0.0002 | yes | yes |
+| GLM-Logit vs Poisson-GLM | +0.5203 | [+0.4863, +0.5530] | 0.0002 | yes | yes |
+| Poisson-GLM vs TTM | -0.4649 | [-0.4975, -0.4322] | 0.0002 | yes | yes |
+| HierBayes vs Poisson-GLM | +0.5158 | [+0.4830, +0.5477] | 0.0002 | yes | yes |
+| GLM-Logit vs TTM | +0.0554 | [+0.0326, +0.0792] | 0.0002 | yes | yes |
+| B5: B2+B3 vs ET | +0.0603 | [+0.0307, +0.0886] | 0.0002 | yes | yes |
+| ET vs HierBayes | -0.0686 | [-0.0922, -0.0449] | 0.0002 | yes | yes |
+| B3: DoY season vs Poisson-GLM | +0.4482 | [+0.4161, +0.4808] | 0.0002 | yes | yes |
+| B4: B1+B3 vs Poisson-GLM | +0.4904 | [+0.4584, +0.5233] | 0.0002 | yes | yes |
+| B5: B2+B3 vs Poisson-GLM | +0.5075 | [+0.4736, +0.5398] | 0.0002 | yes | yes |
+| HierBayes vs TTM | +0.0508 | [+0.0236, +0.0783] | 0.0004 | yes | yes |
+| B4: B1+B3 vs ET | +0.0433 | [+0.0203, +0.0678] | 0.0004 | yes | yes |
+| B1: Static prior vs TTM | +0.0414 | [+0.0185, +0.0660] | 0.0006 | yes | yes |
+| B2: Recent MA vs B5: B2+B3 | -0.0484 | [-0.0766, -0.0234] | 0.0008 | yes | yes |
+| B2: Recent MA vs HierBayes | -0.0568 | [-0.0912, -0.0240] | 0.0010 | no | yes |
+| B4: B1+B3 vs GLM-Logit | -0.0299 | [-0.0504, -0.0089] | 0.0038 | no | yes |
+| B5: B2+B3 vs TTM | +0.0425 | [+0.0101, +0.0734] | 0.0096 | no | no |
+| B1: Static prior vs B2: Recent MA | +0.0473 | [+0.0109, +0.0873] | 0.0114 | no | no |
+| B4: B1+B3 vs HierBayes | -0.0253 | [-0.0481, -0.0014] | 0.0394 | no | no |
+| B1: Static prior vs B4: B1+B3 | +0.0159 | [+0.0007, +0.0310] | 0.0408 | no | no |
+| B4: B1+B3 vs TTM | +0.0255 | [+0.0011, +0.0517] | 0.0476 | no | no |
+| B2: Recent MA vs B4: B1+B3 | -0.0314 | [-0.0706, +0.0059] | 0.1134 | no | no |
+| B1: Static prior vs GLM-Logit | -0.0139 | [-0.0322, +0.0062] | 0.1576 | no | no |
+| ET vs TTM | -0.0178 | [-0.0441, +0.0081] | 0.1862 | no | no |
+| B3: DoY season vs TTM | -0.0168 | [-0.0453, +0.0102] | 0.2426 | no | no |
+| B4: B1+B3 vs B5: B2+B3 | -0.0170 | [-0.0441, +0.0130] | 0.2452 | no | no |
+| B5: B2+B3 vs GLM-Logit | -0.0129 | [-0.0404, +0.0129] | 0.3535 | no | no |
+| B1: Static prior vs HierBayes | -0.0094 | [-0.0321, +0.0137] | 0.4385 | no | no |
+| B5: B2+B3 vs HierBayes | -0.0083 | [-0.0332, +0.0147] | 0.5157 | no | no |
+| B2: Recent MA vs ET | +0.0119 | [-0.0263, +0.0474] | 0.5405 | no | no |
+| B2: Recent MA vs B3: DoY season | +0.0109 | [-0.0281, +0.0479] | 0.5783 | no | no |
+| GLM-Logit vs HierBayes | +0.0045 | [-0.0125, +0.0225] | 0.6215 | no | no |
+| B2: Recent MA vs TTM | -0.0059 | [-0.0472, +0.0319] | 0.7656 | no | no |
+| B1: Static prior vs B5: B2+B3 | -0.0011 | [-0.0276, +0.0276] | 0.9356 | no | no |
+| B3: DoY season vs ET | +0.0010 | [-0.0286, +0.0300] | 0.9502 | no | no |
 
 Generated by `python scripts/table2_significance.py --all`.
