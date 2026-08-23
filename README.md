@@ -175,7 +175,8 @@ KumaWatch/
 │   ├── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
 │   ├── crosslayer_jaccard.py              # Cross-method Jaccard@K from released score files
 │   ├── table2_significance.py             # Reproduces the paper's pairwise significance table
-│   └── daily_diagnostics.py               # Precision@K, ROC-AUC variants, per-day TP/FP/FN
+│   ├── daily_diagnostics.py               # Precision@K, ROC-AUC variants, per-day TP/FP/FN
+│   └── all_vs_static_prior.py             # Every method tested against the static prior B1
 ├── maps/
 │   ├── kumawatch_primary_layer.html       # Four-method interactive web map (2025) — predictions embedded
 │   └── kumawatch_complementary_layer.html # Complementary-layer focused map view
@@ -338,6 +339,34 @@ Recall@K or Precision@K, which correspond to the fixed daily patrol budget.
 These analyses are retrospective comparisons against the held-out 2025 labels.
 They are not a post-deployment evaluation: no patrol routes, deployment period or
 control municipality exist in this dataset.
+
+### Every method against the static prior
+
+```bash
+python scripts/all_vs_static_prior.py
+```
+
+Table 2 of the paper reports six selected pairwise comparisons. This runs the
+same test — day-level paired bootstrap (B = 5,000) and sign-flip permutation
+(P = 5,000), seeded — for **all eleven methods against B1** on both prefectures,
+and fixes the answer on disk as `results/all_vs_static_prior_<pref>_2025.csv`
+and `.md`: method, Recall@20, Δ vs B1, 95% CI, permutation *p*, Bonferroni
+verdict and the number of days scored.
+
+Coverage is complete: the four learned methods come from released score matrices,
+and B0–B5 and Poisson-GLM are regenerated deterministically from the benchmark
+notebook (Cell 5 and Cell 10). The regenerated Poisson-GLM reproduces its
+published Recall@20 — 0.0267 on Yamagata and 0.0033 on Akita.
+
+Bonferroni here is α = 0.05 / 10 = 0.005 over this family; Table 2 uses
+α = 0.0038 over its own family of thirteen. No comparison falls between the two
+thresholds, so both give the same verdict on every row.
+
+What the table shows: **on Yamagata no method beats the static prior
+significantly** — GLM-Logit's +0.014 (*p* = 0.155), HierBayes' +0.009
+(*p* = 0.439) and B5's +0.001 (*p* = 0.936) are the three that are ahead at all,
+and none approaches the threshold. On Akita, GLM-Logit (+0.050) and HierBayes
+(+0.027) do beat it significantly, which is the asymmetry Section 6 describes.
 
 ### Reproduce the significance table
 
