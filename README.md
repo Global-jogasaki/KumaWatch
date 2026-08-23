@@ -62,7 +62,7 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 |--------|:---------:|:---------:|:---------:|---------------------------------------|
 | **GLM-Logit** (best-ranked) | 0.345 | **0.547** | 0.690 | — |
 | HierBayes | 0.328 | 0.542 | 0.692 | ns (p = 0.624) |
-| B5: Recent MA + Seasonality | 0.333 | 0.534 | 0.660 | ns (p = 0.310) |
+| B5: Recent MA + Seasonality | 0.333 | 0.534 | 0.660 | ns (p = 0.354) |
 | B1: Static Prior | 0.286 | 0.533 | 0.659 | ns (p = 0.155) |
 | B4: Static Prior + Seasonality | 0.320 | 0.517 | 0.644 | — |
 | **TTM** (IBM Granite 1536-96-R2) | 0.291 | 0.492 | 0.620 | sig. (p < 0.001) |
@@ -77,8 +77,8 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | Method | Recall@10 | Recall@20 | Recall@30 | Significance vs GLM-Logit (Recall@20) |
 |--------|:---------:|:---------:|:---------:|---------------------------------------|
 | **GLM-Logit** (best-ranked) | 0.259 | **0.454** | 0.587 | — |
-| HierBayes | 0.262 | 0.431 | 0.577 | sig. (p = 0.003) |
-| B5: Recent MA + Seasonality | 0.261 | 0.427 | 0.568 | ns (p = 0.043, above the Bonferroni-corrected α = 0.0038) |
+| HierBayes | 0.263 | 0.432 | 0.578 | sig. (p = 0.003) |
+| B5: Recent MA + Seasonality | 0.261 | 0.427 | 0.568 | ns (p = 0.048, above the Bonferroni-corrected α = 0.0038) |
 | B2: Recent Moving Average | 0.265 | 0.418 | 0.538 | — |
 | B4: Static Prior + Seasonality | 0.240 | 0.418 | 0.541 | — |
 | B1: Static Prior | 0.251 | 0.405 | 0.530 | sig. (p < 0.001) |
@@ -97,12 +97,12 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | Method | YGT Brier ↓ | YGT BSS ↑ | AKT Brier ↓ | AKT BSS ↑ |
 |--------|:-----------:|:---------:|:-----------:|:---------:|
 | **GLM-Logit** | 0.034 | 0.08 | 0.041 | 0.28 |
-| HierBayes | 0.034 | 0.08 | 0.041 | 0.30 |
+| HierBayes | 0.033 | 0.10 | 0.040 | 0.30 |
 | TTM | 0.036 | 0.02 | 0.055 | 0.04 |
 | Extra Trees | 0.097 | −1.63 | 0.126 | −1.18 |
 | B2: Recent MA | **0.031** | **0.15** | **0.039** | **0.32** |
 
-*BSS (Brier Skill Score) > 0 indicates better calibration than the climatological baseline. B2 achieves the best Brier Skill Score of any method on both prefectures. ET is strongly miscalibrated (BSS = −1.63 on Yamagata), consistent with known behaviour of tree ensembles on probability estimation tasks. HierBayes and GLM-Logit are well-calibrated and similar (BSS ≈ 0.08 YGT, 0.28–0.30 AKT).*
+*BSS (Brier Skill Score) > 0 indicates better calibration than the climatological baseline. B2 achieves the best Brier Skill Score of any method on both prefectures. ET is strongly miscalibrated (BSS = −1.63 on Yamagata), consistent with known behaviour of tree ensembles on probability estimation tasks. HierBayes and GLM-Logit are both well calibrated (BSS 0.08–0.10 on Yamagata, 0.28–0.30 on Akita). The HierBayes row is recomputed from the released posterior-mean files; the paper's Table 1 reports its Yamagata BSS as 0.08, from the superseded run.*
 
 ### Cross-Method Top-K Agreement
 
@@ -241,9 +241,15 @@ Metrics are computed under the **Global formulation**: for each day *t*, let S_t
 
 where A_t is the set of cells with actual sightings on day *t*. Results are averaged over the 365-day evaluation window (2025).
 
-Statistical significance: **permutation tests** with Bonferroni correction over 13 comparisons (α = 0.0038). Paired bootstrap (B = 5,000) and cell-level bootstrap are used for confidence intervals.
+Statistical significance: day-level paired **permutation tests** (P = 5,000, sign-flip) with day-level paired bootstrap confidence intervals (B = 5,000), both seeded with 42. Bonferroni is applied per family, and each table states which family it belongs to:
 
-Calibration metrics (per-cell, averaged over cells with ≥1 sighting in evaluation period): **Brier score**, **Brier Skill Score (BSS)**, ECE, MAE, RMSE.
+| Family | Comparisons | α |
+|--------|:-----------:|:-:|
+| The paper's Table 2 | 13 | 0.0038 |
+| Every method vs the static prior (`all_vs_static_prior.py`) | 10 | 0.005 |
+| Every pair among the 11 methods (`table2_significance.py --all`) | 55 | 0.00091 |
+
+Calibration metrics are computed **globally over all cell-days** in the evaluation window, against the climatological base rate: **Brier score**, **Brier Skill Score (BSS)**, ECE, MAE, RMSE.
 
 Ranking metrics: per-cell **ROC-AUC**, **PR-AUC**.
 
@@ -256,15 +262,15 @@ Cross-method agreement: **Jaccard@K** between the top-K cell sets of two methods
 ### Dependencies
 
 ```bash
-# Core
-pip install scikit-learn pandas numpy scipy
+# Reproducing the published tables — pinned versions the results were computed under
+pip install -r requirements-diagnostics.txt
 
-# Bayesian layer
+# Bayesian layer, only needed to refit HierBayes from scratch
 pip install pymc numpyro
-
-# Visualization
-# Maps are single HTML files (no server required; Leaflet and OSM tiles load from their CDNs)
 ```
+
+The maps need nothing installed: they are single HTML files with every prediction
+embedded (Leaflet and the OpenStreetMap tiles load from their CDNs).
 
 ### View the web maps
 
@@ -278,16 +284,27 @@ Or open `maps/kumawatch_primary_layer.html` locally in any modern browser.
 
 ### Prerequisite: pre-computed score files
 
-The benchmark notebook (`notebooks/kumawatch_benchmark.ipynb`) requires pre-computed ET and TTM daily scores for 2025. These are included in `data/scores/`:
+The benchmark notebook (`notebooks/kumawatch_benchmark.ipynb`) needs pre-computed
+ET and TTM daily scores for 2025. Those, and the GLM-Logit and HierBayes matrices
+the reproduction scripts read, are all in `data/scores/`:
 
-| File | Model |
-|------|-------|
-| `data/scores/yamagata_et_scores_2025.csv` | Extra Trees — Yamagata |
-| `data/scores/yamagata_ttm_scores_2025.csv` | IBM Granite TTM — Yamagata |
-| `data/scores/akita_et_scores_2025.csv` | Extra Trees — Akita |
-| `data/scores/akita_ttm_scores_2025.csv` | IBM Granite TTM — Akita |
+| File | Model | Prefecture |
+|------|-------|------------|
+| `yamagata_glm_logit_scores_2025.npy` | GLM-Logit | Yamagata |
+| `yamagata_hier_mean_scores_2025.npy` | HierBayes (posterior mean) | Yamagata |
+| `yamagata_et_scores_2025.csv` | Extra Trees | Yamagata |
+| `yamagata_ttm_scores_2025.csv` | IBM Granite TTM | Yamagata |
+| `akita_glm_logit_scores_2025.npy` | GLM-Logit | Akita |
+| `akita_hier_mean_scores_2025.npy` | HierBayes (posterior mean) | Akita |
+| `akita_et_scores_2025.csv` | Extra Trees | Akita |
+| `akita_ttm_scores_2025.csv` | IBM Granite TTM | Akita |
 
-To **regenerate** these scores from scratch:
+B0–B5 and Poisson-GLM are not shipped as files: they are regenerated
+deterministically from the benchmark notebook (Cell 5 and Cell 10) wherever they
+are needed. `data/scores/README.md` records the verified Recall@K and SHA-256 of
+each released file.
+
+To **regenerate** the ET and TTM scores from scratch:
 - ET scores: run `scripts/et_benchmark_yamagata.py` and `scripts/et_benchmark_akita.py` (see external data requirements below)
 - TTM scores: run `notebooks/ttm_yamagata.ipynb` / `notebooks/ttm_akita.ipynb` on Colab (requires IBM watsonx.ai API key)
 
