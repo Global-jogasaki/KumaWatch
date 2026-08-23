@@ -219,11 +219,14 @@ def main():
                     f"95% CI [{ci[0]:+.4f}, {ci[1]:+.4f}]  "
                     f"p = {p_perm:.4f}  {sig:>3s}  (n = {n})")
             if pub_d is not None:
-                agree = (abs(obs - pub_d) <= 0.0015
-                         and abs(ci[0] - pub_ci[0]) <= 0.0015
-                         and abs(ci[1] - pub_ci[1]) <= 0.0015)
+                # Report the largest deviation rather than only a verdict: a
+                # tolerance wide enough to pass also hides a 0.001 disagreement,
+                # which is exactly the kind of thing worth seeing.
+                dev = max(abs(obs - pub_d),
+                          abs(ci[0] - pub_ci[0]), abs(ci[1] - pub_ci[1]))
                 line += f"   published Δ = {pub_d:+.3f} p = {pub_p}"
-                line += "  [OK]" if agree else "  [DIFFERS]"
+                line += f"  max|dev| = {dev:.4f}"
+                line += "  [OK]" if dev <= 0.0015 else "  [DIFFERS]"
             print(line)
 
         if args.all and not args.no_save and collected:
