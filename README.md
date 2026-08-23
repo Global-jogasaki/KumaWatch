@@ -160,47 +160,60 @@ KumaWatch — Prototype Architecture and Candidate Method Roles:
 
 ```
 KumaWatch/
-├── index.html                             # GitHub Pages landing page (live demo entry point)
+├── index.html                             # GitHub Pages landing page — supplementary diagnostics
 ├── notebooks/
-│   ├── kumawatch_benchmark.ipynb          # Full 11-method benchmark (GLM-Logit, HierBayes, ET, TTM, B0-B5)
-│   ├── kumawatch_benchmark_table3_colab.ipynb  # Confidence-filtered Recall@20 (Table 3) + permutation test
+│   ├── kumawatch_benchmark.ipynb          # Full 11-method benchmark (GLM-Logit, HierBayes, ET, TTM, B0–B5, Poisson-GLM)
+│   ├── kumawatch_benchmark_table3_colab.ipynb  # Archived run; its confidence-filtered analysis is dropped from the final paper
 │   ├── ttm_yamagata.ipynb                 # TTM inference — Yamagata 144 cells (IBM Granite TTM 1536-96-R2)
 │   ├── ttm_akita.ipynb                    # TTM inference — Akita 260 cells (IBM Granite TTM 512-96-R2)
 │   └── et_akita.ipynb                     # Extra Trees baseline — Akita (Colab)
 ├── scripts/
-│   ├── et_benchmark_yamagata.py           # Extra Trees benchmark — Yamagata
-│   ├── et_benchmark_akita.py              # Extra Trees benchmark — Akita
-│   ├── generate_kumawatch_webmap.py       # Three-layer map generator (GLM-Logit, HierBayes, TTM, ET)
-│   ├── generate_glm_webmap.py             # GLM-Logit single-layer map generator
-│   ├── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
+│   ├── table2_significance.py             # Table 2 of the paper; --all runs every pair among the 11 methods
+│   ├── all_vs_static_prior.py             # Every method tested against the static prior B1
+│   ├── daily_diagnostics.py               # Precision@K, three ROC-AUC definitions, per-day TP/FP/FN
 │   ├── crosslayer_jaccard.py              # Cross-method Jaccard@K from released score files
-│   ├── table2_significance.py             # Reproduces the paper's pairwise significance table
-│   ├── daily_diagnostics.py               # Precision@K, ROC-AUC variants, per-day TP/FP/FN
-│   └── all_vs_static_prior.py             # Every method tested against the static prior B1
+│   ├── calibration_validation.py          # Post-hoc Platt/Isotonic calibration validation
+│   ├── generate_kumawatch_webmap.py       # Builds maps/ from the released scores; aborts if they do not verify
+│   ├── generate_glm_webmap.py             # GLM-Logit single-layer map generator
+│   ├── et_benchmark_yamagata.py           # Extra Trees benchmark — Yamagata (needs external covariates)
+│   └── et_benchmark_akita.py              # Extra Trees benchmark — Akita (needs external covariates)
+├── results/                               # Fixed outputs, so a figure never has to be recomputed to be quoted
+│   ├── all_pairwise_tests_{yamagata,akita}_2025.csv|.md   # 55 pairs per prefecture, sorted by p
+│   ├── all_vs_static_prior_{yamagata,akita}_2025.csv|.md  # All 11 methods vs B1
+│   └── daily_diagnostics_{yamagata,akita}_2025.csv        # 3,650 method-day rows each
 ├── maps/
-│   ├── kumawatch_primary_layer.html       # Four-method interactive web map (2025) — predictions embedded
+│   ├── kumawatch_primary_layer.html       # Four-method interactive web map (2025) — all 144 cells × 365 days embedded
 │   └── kumawatch_complementary_layer.html # Complementary-layer focused map view
 ├── data/
-│   ├── yamagata_10km_daily_timeseries.csv # 144 cells × daily sightings (Apr 2018–Dec 2025; training from Oct 2018)
-│   ├── akita_10km_daily_timeseries.csv    # 260 cells × daily sightings (Apr 2020–Dec 2025; training from Apr 2022)
+│   ├── yamagata_10km_daily_timeseries.csv # 144 cells × daily sightings, wide format (Apr 2018–Dec 2025; training from Oct 2018)
+│   ├── akita_10km_daily_timeseries.csv    # 260 cells × daily sightings, wide format (Apr 2020–Dec 2025; training from Apr 2022)
 │   ├── yamagata_10km_grid_coords.csv      # Grid cell coordinates and IDs
 │   ├── akita_10km_grid_coords.csv         # Grid cell coordinates and IDs
 │   ├── scores/                            # Pre-computed 2025 test-period scores
 │   │   ├── yamagata_glm_logit_scores_2025.npy   # GLM-Logit (365 × 144, float32)
-│   │   ├── yamagata_hier_mean_scores_2025.npy   # HierBayes posterior mean (365 × 144, float64)
-│   │   ├── yamagata_hier_std_scores_2025.npy    # HierBayes posterior std — from a different MCMC run; do not pair with the mean
-│   │   ├── yamagata_et_scores_2025.csv
-│   │   ├── yamagata_ttm_scores_2025.csv
-│   │   ├── yamagata_ttm_scores.npy        # NumPy binary format (365 × 144, float32)
+│   │   ├── yamagata_hier_mean_scores_2025.npy   # HierBayes posterior mean (365 × 144, float32)
+│   │   ├── yamagata_hier_std_scores_2025.npy    # HierBayes posterior std — a different MCMC run; do not pair with the mean
+│   │   ├── yamagata_et_scores_2025.csv          # Extra Trees (365 × 144)
+│   │   ├── yamagata_ttm_scores_2025.csv         # IBM Granite TTM (365 × 144)
+│   │   ├── yamagata_ttm_scores.npy              # Same, NumPy binary
 │   │   ├── akita_glm_logit_scores_2025.npy      # GLM-Logit (365 × 260, float32)
 │   │   ├── akita_hier_mean_scores_2025.npy      # HierBayes posterior mean (365 × 260, float32)
-│   │   ├── akita_et_scores_2025.csv
-│   │   ├── akita_ttm_scores_2025.csv
-│   │   └── akita_ttm_scores.npy           # NumPy binary format (365 × 260, float32)
-│   └── README.md                          # Data description and provenance
+│   │   ├── akita_et_scores_2025.csv             # Extra Trees (365 × 260)
+│   │   ├── akita_ttm_scores_2025.csv            # IBM Granite TTM (365 × 260)
+│   │   └── akita_ttm_scores.npy                 # Same, NumPy binary
+│   └── README.md                          # Score-file provenance, verified Recall@K and SHA-256
+├── .claude/skills/                        # Task-entry guides (benchmark, scores, webmap, calibration, data reference)
+├── CLAUDE.md                              # Index into the skills above
+├── requirements-diagnostics.txt           # Versions the published diagnostics were computed under
+├── .nojekyll                              # Serves the Pages site as plain files, without Jekyll
+├── .gitignore
 ├── README.md
 └── LICENSE
 ```
+
+Everything in `results/` is regenerated by the scripts above; the daily
+diagnostics and pairwise tests cover all eleven benchmarked methods, with B0–B5
+and Poisson-GLM regenerated deterministically rather than read from a file.
 
 ---
 
