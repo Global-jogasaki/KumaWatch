@@ -340,6 +340,27 @@ These analyses are retrospective comparisons against the held-out 2025 labels.
 They are not a post-deployment evaluation: no patrol routes, deployment period or
 control municipality exist in this dataset.
 
+### Every pairwise comparison
+
+```bash
+python scripts/table2_significance.py --all
+```
+
+Runs the same test on **every unordered pair** among the eleven methods — 55
+pairs per prefecture, 110 in total — and writes them to
+`results/all_pairwise_tests_<pref>_2025.csv` and `.md`, sorted by *p*. This
+answers pairwise questions the paper's six selected rows do not, such as TTM
+versus Extra Trees.
+
+Bonferroni for this family is α = 0.05 / 55 = 0.00091, stricter than Table 2's
+0.0038 over its own thirteen; each table states the threshold it used.
+
+The TTM–ET comparison is a good illustration of why the pair matters: on Yamagata
+the two are indistinguishable (Δ = −0.018 in ET's favour direction, *p* = 0.186),
+while on Akita ET is clearly worse (Δ = −0.069, *p* = 0.0002). Overall 34 of 55
+pairs separate on Yamagata and 35 of 55 on Akita; GLM-Logit and HierBayes do not
+separate on either.
+
 ### Every method against the static prior
 
 ```bash

@@ -35,12 +35,14 @@ import pandas as pd
 
 REPO = Path(__file__).resolve().parent.parent
 SCORES = REPO / "data" / "scores"
+RESULTS = REPO / "results"
 
 META_COLS = {"Date", "Year", "Month", "Week", "Weekday", "Sum"}
 TEST_START, TEST_END = "2025-01-01", "2025-12-31"
 
 RAND_SEED = 42
 B_BOOT = P_PERM = 5000
+INCLUDE_ALL_METHODS = False   # set by --all
 ALPHA_BONFERRONI = 0.05 / 13
 
 PREFECTURES = {
@@ -91,6 +93,16 @@ def load_prefecture(pref):
 
     scores = {"B1": np.tile(train_L.mean(axis=0),
                             (len(test_dates), 1)).astype(np.float32)}
+    if INCLUDE_ALL_METHODS:
+        # B0-B5 and Poisson-GLM are regenerated deterministically, so --all can
+        # cover all eleven benchmarked methods rather than only the released four
+        # plus the static prior. Shared with all_vs_static_prior.py so the two
+        # scripts cannot drift apart.
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import all_vs_static_prior as avs
+        scores, test_L = avs.load(pref)
+        return scores, test_L
     for name, path in cfg["scores"].items():
         path = Path(path)
         if not path.exists():
@@ -142,7 +154,12 @@ def main():
     ap.add_argument("--all", action="store_true",
                     help="report every available method pair, not just Table 2")
     ap.add_argument("--markdown", action="store_true")
+    ap.add_argument("--no-save", action="store_true",
+                    help="with --all, print only; do not write results/")
     args = ap.parse_args()
+
+    global INCLUDE_ALL_METHODS
+    INCLUDE_ALL_METHODS = args.all
 
     cache = {}
 
@@ -162,9 +179,18 @@ def main():
                 scores, _ = get(pref)
                 for a, b in itertools.combinations(sorted(scores), 2):
                     rows.append((pref, a, b, None, None, None))
+            # This family is every unordered pair per prefecture, not the paper's
+            # thirteen, so it gets its own Bonferroni threshold.
+            n_pairs = len(rows) // len(PREFECTURES)
+            alpha = 0.05 / n_pairs
+            print(f"  --all: {n_pairs} pairs per prefecture over "
+                  f"{len(get('yamagata')[0])} methods; "
+                  f"Bonferroni alpha = {alpha:.5f}\n")
         else:
             rows = PUBLISHED
+            alpha = ALPHA_BONFERRONI
 
+        collected = []
         if args.markdown:
             print("| Comparison | Δ | 95% CI | p | Significant |")
             print("|------------|--:|:------:|--:|:-----------:|")
@@ -175,7 +201,12 @@ def main():
                 print(f"  {a} vs {b} ({pref}): score file unavailable — skipped")
                 continue
             obs, ci, p_perm, n = compare(scores[a], scores[b], labels, k)
-            sig = "Yes" if p_perm < ALPHA_BONFERRONI else "No"
+            sig = "Yes" if p_perm < alpha else "No"
+            collected.append(dict(prefecture=pref, method_a=a, method_b=b,
+                                  delta=obs, ci_low=ci[0], ci_high=ci[1],
+                                  p_perm=p_perm,
+                                  bonferroni_significant=sig.lower(),
+                                  n_days=n, k=k))
             tag = "AKT" if pref == "akita" else "YGT"
             label = f"{a} vs {b} ({tag})"
 
@@ -194,7 +225,45 @@ def main():
                 line += f"   published Δ = {pub_d:+.3f} p = {pub_p}"
                 line += "  [OK]" if agree else "  [DIFFERS]"
             print(line)
+
+        if args.all and not args.no_save and collected:
+            save_all(collected, k, alpha)
         print()
+
+
+def save_all(rows, k, alpha):
+    """Write every pairwise test to results/, as CSV and as Markdown."""
+    RESULTS.mkdir(exist_ok=True)
+    df = pd.DataFrame(rows)
+    for pref, sub in df.groupby("prefecture"):
+        stem = RESULTS / f"all_pairwise_tests_{pref}_2025"
+        sub = sub.sort_values("p_perm")
+        sub.to_csv(stem.with_suffix(".csv"), index=False, float_format="%.6f")
+
+        tag = "Yamagata" if pref == "yamagata" else "Akita"
+        n_days = int(sub.n_days.max())
+        md = [f"# Every pairwise comparison — {tag}, 2025", "",
+              f"All {len(sub)} unordered pairs among the {len(PREFECTURES) and ''}"
+              f"eleven benchmarked methods, at K = {k}, on the {n_days} days with "
+              "at least one reported sighting.", "",
+              f"Δ is the mean per-day difference in Recall@{k} (first method minus "
+              f"second); the interval is a day-level paired bootstrap "
+              f"(B = {B_BOOT:,}) and *p* a day-level sign-flip permutation test "
+              f"(P = {P_PERM:,}), both seeded with {RAND_SEED} — the same procedure "
+              "as Table 2 of the paper.", "",
+              f"Bonferroni over the {len(sub)} pairs in this family: "
+              f"α = {alpha:.5f}. Table 2 uses α = 0.0038 over its own family of "
+              "thirteen. Rows are sorted by *p*.", "",
+              "| Comparison | Δ | 95% CI | *p* | Bonferroni sig. |",
+              "|------------|--:|:------:|----:|:---------------:|"]
+        for _, r in sub.iterrows():
+            md.append(f"| {r.method_a} vs {r.method_b} | {r.delta:+.4f} | "
+                      f"[{r.ci_low:+.4f}, {r.ci_high:+.4f}] | {r.p_perm:.4f} | "
+                      f"{r.bonferroni_significant} |")
+        md += ["", "Generated by `python scripts/table2_significance.py --all`."]
+        stem.with_suffix(".md").write_text("\n".join(md), encoding="utf-8")
+        print(f"  wrote {stem.with_suffix('.csv').relative_to(REPO)} and .md "
+              f"({len(sub)} pairs)")
 
 
 if __name__ == "__main__":
