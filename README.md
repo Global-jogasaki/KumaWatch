@@ -24,7 +24,7 @@ To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern
 
 ## Overview
 
-Human–bear conflicts in northern Japan have escalated sharply: **Yamagata Prefecture's official monthly tally reports 3,079 Asiatic black bear sightings in 2025** (as of August 16, 2026; excludes track-only reports and injury incidents), the highest annual count on record. The benchmark dataset in this repository is a snapshot of the prefectural sighting database extracted on January 17, 2026, containing 2,016 sightings for 2025 (records through mid-November; see Dataset section). Municipalities face a daily resource-constrained question: which twenty grid cells should patrols visit today?
+Human–bear conflicts in northern Japan have escalated sharply: **Yamagata Prefecture's official monthly tally reports 3,079 Asiatic black bear sightings in 2025** (as of August 16, 2026; excludes track-only reports and injury incidents), the highest annual count on record. The benchmark dataset in this repository is a snapshot of the prefectural sighting database extracted on January 17, 2026 — 2,655 raw records through mid-November 2025, yielding 2,016 positive cell-days after binary cell-day aggregation (see Dataset section). Municipalities face a daily resource-constrained question: which twenty grid cells should patrols visit today?
 
 **KumaWatch** is an open benchmark and browser-based decision-support prototype comparing eleven wildlife encounter prediction methods under a fixed municipal patrol budget. The central finding is negative and procurement-relevant: on Yamagata, a foundation model requiring ~4 hours of API inference is significantly worse than a static prior costing milliseconds, and a 30-minute MCMC pipeline yields no ranking improvement over a sub-30-second logistic regression.
 
@@ -32,11 +32,11 @@ Human–bear conflicts in northern Japan have escalated sharply: **Yamagata Pref
 
 ## Abstract
 
-We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day held-out year (2025), with measured per-day computational cost — fitting, refitting or inference as applicable — reported alongside each predictive-performance estimate.
+We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day scoring window (2025) using extraction-time label snapshots, with measured per-day computational cost — fitting, refitting or inference as applicable — reported alongside each predictive-performance estimate.
 
 In the benchmark itself each trainable method is fitted once on data through 2024-12-31, while TTM is applied zero-shot; all methods then produce scores for the 365 evaluation days. The cost column states what one day of operation would cost a municipality that refreshed the model on that cadence, which is the quantity a procurement decision turns on.
 
-**Central finding (negative and procurement-relevant):** IBM Granite TTM requires ~4 hours of API inference per day and, on Yamagata, is significantly *worse* than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0004). On Akita it also trails the static prior, but not significantly (Δ = −0.010, *p* = 0.364). A 30-minute MCMC pipeline (HierBayes) yields no Recall@20 improvement over a sub-30-second logistic regression on Yamagata (*p* = 0.624) and is significantly worse on Akita (*p* = 0.003). On Yamagata — the primary evaluation setting — GLM-Logit's margin over the static prior B1 does not approach significance (+0.014, *p* = 0.155).
+**Central finding (negative and procurement-relevant):** IBM Granite TTM requires ~4 hours of API inference per day and, on Yamagata, is significantly *worse* than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0006). On Akita it also trails the static prior, but not significantly (Δ = −0.010, *p* = 0.364). A 30-minute MCMC pipeline (HierBayes) yields no Recall@20 improvement over a sub-30-second logistic regression on Yamagata (*p* = 0.624) and is significantly worse on Akita (*p* = 0.003). On Yamagata — the primary evaluation setting — GLM-Logit's margin over the static prior B1 does not approach significance (+0.014, *p* = 0.155).
 
 The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 comparisons, P = 5,000). We additionally release a browser-based decision-support map (no server-side prediction computation, no external prediction API) and argue that cost-annotated top-K benchmarking should precede model selection in municipal geospatial alerting.
 
@@ -44,7 +44,7 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 
 ## Key Contributions
 
-1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day held-out windows across two prefectures, with measured per-day computational cost — fitting, refitting or inference as applicable — beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
+1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day scoring windows (extraction-time label snapshots) across two prefectures, with measured per-day computational cost — fitting, refitting or inference as applicable — beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
 
 2. **Negative result with operational reading** — Neither foundation-model inference (~4 h/day) nor MCMC (~30 min/day) buys top-K accuracy over far cheaper alternatives. On Yamagata, GLM-Logit's lead over the static prior is not significant (*p* = 0.155). Extra Trees is strongly miscalibrated (BSS = −1.63). These are null results about ranking only; downstream uses of HierBayes posterior variance and ET environmental covariates are untested rather than refuted.
 
@@ -88,7 +88,7 @@ The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 c
 | B0: Random | 0.047 | 0.080 | 0.114 | — |
 | Poisson-GLM | 0.003 | 0.003 | 0.003 | — |
 
-*Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.155); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. On Yamagata TTM is significantly worse than B1 (Δ = −0.041, p = 0.0004); on Akita it trails B1 by a margin that is not significant (Δ = −0.010, p = 0.364), a comparison not tabulated in the paper. GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures.*
+*Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.155); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. On Yamagata TTM is significantly worse than B1 (Δ = −0.041, p = 0.0006); on Akita it trails B1 by a margin that is not significant (Δ = −0.010, p = 0.364), a comparison not tabulated in the paper. GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures.*
 
 *Each row reports a single run per method; no row mixes results from different runs. GLM-Logit and HierBayes Recall@K are recomputed from the released score files in `data/scores/` (`yamagata_glm_logit_scores_2025.npy`, SHA-256 `2de6593f4169b98e…`; `yamagata_hier_mean_scores_2025.npy`, SHA-256 `726fbeed366a7240…`). Both reproduce the paper's Recall@20 exactly — GLM-Logit 0.5470 and HierBayes 0.5425. The released GLM-Logit score matrix also reproduces Precision@20 = 0.2446, reported as 0.245 to three decimals in Section 6. No run-to-run mixing remains. All six baselines are regenerated deterministically from `notebooks/kumawatch_benchmark.ipynb` Cell 5 (`RAND_SEED = 42`) over the training windows documented above — Yamagata from 2018-10-01, Akita from 2022-04-01 — so every method in these tables shares one training period. (An earlier release computed B3 and B4 over the full data span instead, giving Yamagata B4 = 0.523 and Akita B4 = 0.417; those values are superseded.) TTM and Extra Trees Recall@K are recomputed from the released score CSVs. Poisson-GLM Recall@K is carried over from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs).*
 
@@ -226,7 +226,7 @@ and Poisson-GLM regenerated deterministically rather than read from a file.
 
 Strict temporal separation for model fitting: **all model fitting uses data through 2024-12-31 only**, and all 365 days of 2025 are held out as the test set.
 
-**Snapshot provenance.** Both label sets are snapshots of the prefectures' public sighting databases. The Yamagata snapshot was extracted on January 17, 2026, at which point the prefectural database contained records only through mid-November 2025; the Akita data extend through December 2025. Prefectural tallies are consolidated retroactively as municipal reports arrive: against Yamagata's official monthly tally as of August 2026 (3,079 sightings for 2025), the snapshot records 2,016, with the gap concentrated in the autumn surge (October 581 vs. 870; November 309 vs. 612) and December absent entirely (0 vs. 128). Days with at least one recorded sighting — the days on which Recall@K is defined — number 213 of 365 (Yamagata) and 323 of 365 (Akita). All methods are trained and scored against the same snapshot, so between-method comparisons are internally consistent.
+**Snapshot provenance** (paper Section 3.4). Both label sets are snapshots of the prefectures' public sighting databases. The Yamagata snapshot, extracted on January 17, 2026, contained 2,655 raw records through mid-November 2025; after binary cell-day aggregation, these yielded 2,016 positive cell-days and 213 sighting days. The final prefectural tally reports 3,079 sightings for 2025 (official monthly counts as of August 16, 2026), with the gap concentrated in the autumn surge (October: 581 positive cell-days in the snapshot vs. 870 officially tallied sightings; November 309 vs. 612; December 0 vs. 128 — the two quantities are not defined identically, but the comparison shows where reports were still unconsolidated). The Akita snapshot extends through December 2025 and contains 323 sighting days. All methods are evaluated against the same extraction-time snapshots, so between-method comparisons are internally consistent; rankings may change if later-consolidated reports differ spatially, and evaluation against the consolidated data is deferred to an extended version.
 
 Evaluation is **sequential one-day-ahead forecasting**. For a forecast date *d* in 2025, recency features (`rolling30`, `log(recent365+1)`, and the moving averages behind B2/B5) are computed from sightings observed strictly before *d*, which from late January 2025 onward consist entirely of test-period observations. No observation on or after the forecast date is ever used, and no model coefficients are refit on test-period data. This is the standard sequential-forecasting setup, not label leakage — but note that it does mean test-period observations enter feature computation, which affects GLM-Logit, Poisson-GLM, HierBayes, B2 and B5. B0, B1, B3 and B4 use training-period data only.
 
@@ -495,7 +495,10 @@ November; that rescaling is gone.
                Advances in Geographic Information Systems (SIGSPATIAL '26)},
   year      = {2026},
   address   = {Riverside, CA, USA},
-  month     = {November}
+  month     = {November},
+  publisher = {ACM},
+  doi       = {10.1145/3841645.3843320},
+  isbn      = {979-8-4007-2950-8}
 }
 ```
 
@@ -510,9 +513,9 @@ November; that rescaling is gone.
 
 ## Acknowledgments
 
-This research was supported by the **Yonezawa City Research Promotion Subsidy** through the Yamagata University Industrial Research Institute (FY2025 Young Researcher Encouragement Grant).
+This work was supported in part by the **FY2025 Yonezawa City Research Encouragement Grant** administered by the Yamagata University Industry Research Institute.
 
-The author thanks the **Yamagata Prefecture Wildlife Management Division** and participating municipalities for cooperation in data preparation and informal operational consultation.
+The author thanks the Institute and the participating municipalities for their cooperation in data preparation and informal operational consultation, and acknowledges Prof. Yusuke Fukazawa and Mr. Shin Nakamoto of Sophia University for their pioneering work on bear encounter prediction. Computational resources were provided through the IBM watsonx.ai free tier.
 
 The author gratefully acknowledges **Prof. Yusuke Fukazawa and Mr. Shin Nakamoto** (Sophia University) for their pioneering work on bear encounter prediction, which served as the foundation for the Extra Trees reimplementation in this study.
 
