@@ -32,13 +32,9 @@ Human–bear conflicts in northern Japan have escalated sharply: **Yamagata Pref
 
 ## Abstract
 
-We present **KumaWatch**, a cost-annotated top-K benchmark of eleven wildlife encounter prediction methods on two Japanese prefectures (Yamagata 144 cells, Akita 260 cells) over a 365-day scoring window (2025) using extraction-time label snapshots, with measured per-day computational cost — fitting, refitting or inference as applicable — reported alongside each predictive-performance estimate.
+Northern Japan is experiencing severe human–bear conflict; Yamagata Prefecture's official monthly tally reports 3,079 Asiatic black bear sightings in 2025, the highest annual count on record. Municipalities need a daily answer to a resource-constrained question: which twenty grid cells should patrols visit today? We benchmark eleven prediction methods — naive baselines, L2-regularized logistic regression, a hierarchical Bayesian Poisson model, a feature-engineered Extra Trees ensemble and IBM Granite Tiny Time Mixers — on a held-out year (2025) across Yamagata (144 cells) and Akita (260 cells), under a top-K formulation mirroring the patrol-allocation decision. Our central finding is negative and procurement-relevant: on Yamagata, the evaluated foundation-model configuration is significantly worse than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0006), the tree ensemble underperforms the other non-ablation learned methods and is badly miscalibrated, and a thirty-minute MCMC pipeline yields no ranking improvement over a sub-thirty-second logistic regression. We release a browser-only decision-support map requiring no server-side computation, and argue that cost-annotated top-K benchmarking should precede model selection in municipal geospatial alerting.
 
-In the benchmark itself each trainable method is fitted once on data through 2024-12-31, while TTM is applied zero-shot; all methods then produce scores for the 365 evaluation days. The cost column states what one day of operation would cost a municipality that refreshed the model on that cadence, which is the quantity a procurement decision turns on.
-
-**Central finding (negative and procurement-relevant):** IBM Granite TTM requires ~4 hours of API inference per day and, on Yamagata, is significantly *worse* than a static per-cell prior costing milliseconds (Δ = −0.041, *p* = 0.0006). On Akita it also trails the static prior, but not significantly (Δ = −0.010, *p* = 0.364). A 30-minute MCMC pipeline (HierBayes) yields no Recall@20 improvement over a sub-30-second logistic regression on Yamagata (*p* = 0.624) and is significantly worse on Akita (*p* = 0.003). On Yamagata — the primary evaluation setting — GLM-Logit's margin over the static prior B1 does not approach significance (+0.014, *p* = 0.155).
-
-The benchmark uses Bonferroni-corrected permutation tests (α = 0.0038 over 13 comparisons, P = 5,000). We additionally release a browser-based decision-support map (no server-side prediction computation, no external prediction API) and argue that cost-annotated top-K benchmarking should precede model selection in municipal geospatial alerting.
+*Note beyond the paper abstract:* in the benchmark itself each trainable method is fitted once on data through 2024-12-31, while TTM is applied zero-shot; all methods then produce scores for the 365 evaluation days. The cost column states what one day of operation would cost a municipality that refreshed the model on that cadence, which is the quantity a procurement decision turns on. On Akita, TTM also trails the static prior, but not significantly (Δ = −0.010, *p* = 0.364; a comparison not tabulated in the paper).
 
 ---
 
@@ -515,12 +511,10 @@ November; that rescaling is gone.
 
 This work was supported in part by the **FY2025 Yonezawa City Research Encouragement Grant** administered by the Yamagata University Industry Research Institute.
 
-The author thanks the Institute and the participating municipalities for their cooperation in data preparation and informal operational consultation, and acknowledges Prof. Yusuke Fukazawa and Mr. Shin Nakamoto of Sophia University for their pioneering work on bear encounter prediction. Computational resources were provided through the IBM watsonx.ai free tier.
+The author thanks the Institute and the participating municipalities for their cooperation in data preparation and informal operational consultation, and acknowledges **Prof. Yusuke Fukazawa and Mr. Shin Nakamoto** of Sophia University for their pioneering work on bear encounter prediction, which served as the foundation for the Extra Trees reimplementation in this study. Computational resources were provided through the IBM watsonx.ai free tier (**IBM Granite TTM** is developed by IBM Research).
 
-The author gratefully acknowledges **Prof. Yusuke Fukazawa and Mr. Shin Nakamoto** (Sophia University) for their pioneering work on bear encounter prediction, which served as the foundation for the Extra Trees reimplementation in this study.
-
-**IBM Granite TTM** is developed by IBM Research; computational resources were provided through the IBM watsonx.ai free tier. Bear sighting data is provided by Yamagata and Akita prefectural governments (publicly available wildlife observation databases).
+Bear sighting data are provided by the Yamagata and Akita prefectural governments (publicly available wildlife observation databases).
 
 ---
 
-*Accepted as a short paper in the Applications Track of ACM SIGSPATIAL 2026; camera-ready version in preparation.*
+*Accepted as a short paper in the Applications Track of ACM SIGSPATIAL 2026 (Riverside, CA, USA, November 3–6, 2026). DOI: [10.1145/3841645.3843320](https://doi.org/10.1145/3841645.3843320)*
