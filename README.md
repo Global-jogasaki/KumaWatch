@@ -24,7 +24,7 @@ To open locally, open `maps/kumawatch_primary_layer.html` directly in any modern
 
 ## Overview
 
-Human–bear conflicts in northern Japan have escalated sharply, with **publicly available Yamagata Prefecture records reporting 2,655 Asiatic black bear sighting records in 2025**. Municipalities face a daily resource-constrained question: which twenty grid cells should patrols visit today?
+Human–bear conflicts in northern Japan have escalated sharply: **Yamagata Prefecture's official monthly tally reports 3,079 Asiatic black bear sightings in 2025** (as of August 16, 2026; excludes track-only reports and injury incidents), the highest annual count on record. The benchmark dataset in this repository is a snapshot of the prefectural sighting database extracted on January 17, 2026, containing 2,016 sightings for 2025 (records through mid-November; see Dataset section). Municipalities face a daily resource-constrained question: which twenty grid cells should patrols visit today?
 
 **KumaWatch** is an open benchmark and browser-based decision-support prototype comparing eleven wildlife encounter prediction methods under a fixed municipal patrol budget. The central finding is negative and procurement-relevant: on Yamagata, a foundation model requiring ~4 hours of API inference is significantly worse than a static prior costing milliseconds, and a 30-minute MCMC pipeline yields no ranking improvement over a sub-30-second logistic regression.
 
@@ -225,6 +225,8 @@ and Poisson-GLM regenerated deterministically rather than read from a file.
 | Akita bear sightings | Akita, Japan | 2022-04-01 – 2024-12-31 | 2025-01-01 – 2025-12-31 | 260 | Daily |
 
 Strict temporal separation for model fitting: **all model fitting uses data through 2024-12-31 only**, and all 365 days of 2025 are held out as the test set.
+
+**Snapshot provenance.** Both label sets are snapshots of the prefectures' public sighting databases. The Yamagata snapshot was extracted on January 17, 2026, at which point the prefectural database contained records only through mid-November 2025; the Akita data extend through December 2025. Prefectural tallies are consolidated retroactively as municipal reports arrive: against Yamagata's official monthly tally as of August 2026 (3,079 sightings for 2025), the snapshot records 2,016, with the gap concentrated in the autumn surge (October 581 vs. 870; November 309 vs. 612) and December absent entirely (0 vs. 128). Days with at least one recorded sighting — the days on which Recall@K is defined — number 213 of 365 (Yamagata) and 323 of 365 (Akita). All methods are trained and scored against the same snapshot, so between-method comparisons are internally consistent.
 
 Evaluation is **sequential one-day-ahead forecasting**. For a forecast date *d* in 2025, recency features (`rolling30`, `log(recent365+1)`, and the moving averages behind B2/B5) are computed from sightings observed strictly before *d*, which from late January 2025 onward consist entirely of test-period observations. No observation on or after the forecast date is ever used, and no model coefficients are refit on test-period data. This is the standard sequential-forecasting setup, not label leakage — but note that it does mean test-period observations enter feature computation, which affects GLM-Logit, Poisson-GLM, HierBayes, B2 and B5. B0, B1, B3 and B4 use training-period data only.
 
