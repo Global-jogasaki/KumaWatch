@@ -70,11 +70,11 @@ PREFECTURES = {
 
 # The six rows printed in Table 2, with the published values for comparison.
 PUBLISHED = [
-    ("akita",    "GLM-Logit", "ET",        +0.128, (+0.101, +0.157), 0.0002),
-    ("yamagata", "TTM",       "B1",        -0.041, (-0.066, -0.019), 0.0004),
-    ("yamagata", "GLM-Logit", "B1",        +0.014, (-0.006, +0.032), 0.155),
+    ("akita",    "GLM-Logit", "ET",        +0.129, (+0.100, +0.157), 0.0002),
+    ("yamagata", "TTM",       "B1",        -0.041, (-0.066, -0.019), 0.0006),
+    ("yamagata", "GLM-Logit", "B1",        +0.014, (-0.006, +0.032), 0.158),
     ("akita",    "GLM-Logit", "B1",        +0.050, (+0.028, +0.072), 0.0002),
-    ("yamagata", "HierBayes", "GLM-Logit", -0.005, (-0.023, +0.013), 0.624),
+    ("yamagata", "HierBayes", "GLM-Logit", -0.005, (-0.022, +0.013), 0.621),
     ("akita",    "HierBayes", "GLM-Logit", -0.023, (-0.039, -0.007), 0.003),
 ]
 

@@ -171,7 +171,7 @@ code{font-family:'SFMono-Regular',Consolas,monospace;font-size:.9em;background:#
       </tbody>
     </table>
   </div>
-  <p class="tnote">Highlighted values mark the highest in each column. Precision falls as K grows because the additional cells are mostly empty: at K = 30, roughly four in five inspected cells report no sighting. GLM-Logit achieves the highest Precision at all three budgets and the highest Recall at K = 10 and 20, while HierBayes leads Recall@30 by 0.0018. The seasonal baseline B5 is only 0.0009 behind GLM-Logit on Precision@20 while costing under one second per day. GLM-Logit's Recall@20 margin over the static prior does not reach significance (<em>p</em> = 0.155).</p>
+  <p class="tnote">Highlighted values mark the highest in each column. Precision falls as K grows because the additional cells are mostly empty: at K = 30, roughly four in five inspected cells report no sighting. GLM-Logit achieves the highest Precision at all three budgets and the highest Recall at K = 10 and 20, while HierBayes leads Recall@30 by 0.0018. The seasonal baseline B5 is only 0.0009 behind GLM-Logit on Precision@20 while costing under one second per day. GLM-Logit's Recall@20 margin over the static prior does not reach significance (<em>p</em> = 0.158).</p>
 </section>
 
 <!-- ── Precision, all days ────────────────────────────────── -->
@@ -266,8 +266,8 @@ code{font-family:'SFMono-Regular',Consolas,monospace;font-size:.9em;background:#
   </div>
   <div class="protocol">
     <dl>
-      <dt>GLM-Logit</dt><dd>Highest Recall@20 (0.547) among all eleven benchmarked methods, and highest Precision@20 (0.245) among the ten covered by these supplementary diagnostics. Its Recall@20 margin over the static prior is +0.014 and does not approach significance (<em>p</em> = 0.155), while the inexpensive seasonal baseline B5 is only 0.0009 behind on Precision@20. On Recall@20, the static prior — a method with no model, no features and no daily computation — is statistically indistinguishable from GLM-Logit in this setting.</dd>
-      <dt>HierBayes</dt><dd>Recall@20 = 0.542; no improvement over GLM-Logit on Yamagata (<em>p</em> = 0.624) at roughly sixty times the runtime. Posterior-uncertainty applications were not evaluated.</dd>
+      <dt>GLM-Logit</dt><dd>Highest Recall@20 (0.547) among all eleven benchmarked methods, and highest Precision@20 (0.245) among the ten covered by these supplementary diagnostics. Its Recall@20 margin over the static prior is +0.014 and does not approach significance (<em>p</em> = 0.158), while the inexpensive seasonal baseline B5 is only 0.0009 behind on Precision@20. On Recall@20, the static prior — a method with no model, no features and no daily computation — is statistically indistinguishable from GLM-Logit in this setting.</dd>
+      <dt>HierBayes</dt><dd>Recall@20 = 0.542; no improvement over GLM-Logit on Yamagata (<em>p</em> = 0.621) at roughly sixty times the runtime. Posterior-uncertainty applications were not evaluated.</dd>
       <dt>TTM</dt><dd>Significantly worse than the static prior on Yamagata (Δ = −0.041, <em>p</em> = 0.0004), at about four hours of API inference per day. On Akita it also trails, but not significantly (Δ = −0.010, <em>p</em> = 0.364).</dd>
       <dt>Extra Trees</dt><dd>At Recall@20, Extra Trees underperforms the other non-ablation learned methods and is strongly miscalibrated (Brier Skill Score = −1.63). It nevertheless exceeds TTM under pooled ROC-AUC, illustrating that model ordering depends on the evaluation metric. Cross-method disagreement is not evidence of useful complementarity.</dd>
     </dl>

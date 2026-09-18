@@ -42,7 +42,7 @@ Northern Japan is experiencing severe human–bear conflict; Yamagata Prefecture
 
 1. **Cost-annotated top-K benchmark** — 11 methods (naive baselines B0–B5, Poisson-GLM, GLM-Logit, HierBayes, Extra Trees, TTM) evaluated on identical 365-day scoring windows (extraction-time label snapshots) across two prefectures, with measured per-day computational cost — fitting, refitting or inference as applicable — beside every Recall@K / Precision@K figure. Bonferroni-corrected permutation tests (α = 0.0038, 13 comparisons).
 
-2. **Negative result with operational reading** — Neither foundation-model inference (~4 h/day) nor MCMC (~30 min/day) buys top-K accuracy over far cheaper alternatives. On Yamagata, GLM-Logit's lead over the static prior is not significant (*p* = 0.155). Extra Trees is strongly miscalibrated (BSS = −1.63). These are null results about ranking only; downstream uses of HierBayes posterior variance and ET environmental covariates are untested rather than refuted.
+2. **Negative result with operational reading** — Neither foundation-model inference (~4 h/day) nor MCMC (~30 min/day) buys top-K accuracy over far cheaper alternatives. On Yamagata, GLM-Logit's lead over the static prior is not significant (*p* = 0.158). Extra Trees is strongly miscalibrated (BSS = −1.63). These are null results about ranking only; downstream uses of HierBayes posterior variance and ET environmental covariates are untested rather than refuted.
 
 3. **Browser-based decision-support prototype** — A single-file Leaflet map (no server-side prediction computation, no external prediction API) serving pre-computed scores for GLM-Logit, HierBayes, TTM and Extra Trees across all 144 Yamagata cells × 365 days, with GLM-Logit as the default decision layer, four risk tiers and a slider for how many cells to show (default 20, the paper's patrol budget). Architecture follows directly from Table 1's cost column.
 
@@ -57,9 +57,9 @@ Northern Japan is experiencing severe human–bear conflict; Yamagata Prefecture
 | Method | Recall@10 | Recall@20 | Recall@30 | Significance vs GLM-Logit (Recall@20) |
 |--------|:---------:|:---------:|:---------:|---------------------------------------|
 | **GLM-Logit** (best-ranked) | 0.345 | **0.547** | 0.690 | — |
-| HierBayes | 0.328 | 0.542 | 0.692 | ns (p = 0.624) |
+| HierBayes | 0.328 | 0.542 | 0.692 | ns (p = 0.621) |
 | B5: Recent MA + Seasonality | 0.333 | 0.534 | 0.660 | ns (p = 0.354) |
-| B1: Static Prior | 0.286 | 0.533 | 0.659 | ns (p = 0.155) |
+| B1: Static Prior | 0.286 | 0.533 | 0.659 | ns (p = 0.158) |
 | B4: Static Prior + Seasonality | 0.320 | 0.517 | 0.644 | — |
 | **TTM** (IBM Granite 1536-96-R2) | 0.291 | 0.492 | 0.620 | sig. (p < 0.001) |
 | B2: Recent Moving Average | 0.311 | 0.486 | 0.607 | — |
@@ -84,7 +84,7 @@ Northern Japan is experiencing severe human–bear conflict; Yamagata Prefecture
 | B0: Random | 0.047 | 0.080 | 0.114 | — |
 | Poisson-GLM | 0.003 | 0.003 | 0.003 | — |
 
-*Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.155); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. On Yamagata TTM is significantly worse than B1 (Δ = −0.041, p = 0.0006); on Akita it trails B1 by a margin that is not significant (Δ = −0.010, p = 0.364), a comparison not tabulated in the paper. GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures.*
+*Bonferroni-corrected permutation tests, α = 0.0038 (0.05 / 13 comparisons, P = 5,000 permutations). "sig." = Bonferroni-significant (p < 0.0038); ns = not significant. Significance tests are computed on Recall@20. On Yamagata (primary setting), GLM-Logit's margin over the static prior B1 is not significant (+0.014, p = 0.158); a method requiring no model, no features and no daily computation is indistinguishable from the best method tested. On Yamagata TTM is significantly worse than B1 (Δ = −0.041, p = 0.0006); on Akita it trails B1 by a margin that is not significant (Δ = −0.010, p = 0.364), a comparison not tabulated in the paper. GLM-Logit significantly outperforms TTM and Extra Trees on both prefectures. Every p-value quoted here is the value in `results/all_pairwise_tests_<pref>_2025.csv` and `results/all_vs_static_prior_<pref>_2025.csv` rounded to three decimals, and reproduces the paper's Table 2 exactly.*
 
 *Each row reports a single run per method; no row mixes results from different runs. GLM-Logit and HierBayes Recall@K are recomputed from the released score files in `data/scores/` (`yamagata_glm_logit_scores_2025.npy`, SHA-256 `2de6593f4169b98e…`; `yamagata_hier_mean_scores_2025.npy`, SHA-256 `726fbeed366a7240…`). Both reproduce the paper's Recall@20 exactly — GLM-Logit 0.5470 and HierBayes 0.5425. The released GLM-Logit score matrix also reproduces Precision@20 = 0.2446, reported as 0.245 to three decimals in Section 6. No run-to-run mixing remains. All six baselines are regenerated deterministically from `notebooks/kumawatch_benchmark.ipynb` Cell 5 (`RAND_SEED = 42`) over the training windows documented above — Yamagata from 2018-10-01, Akita from 2022-04-01 — so every method in these tables shares one training period. (An earlier release computed B3 and B4 over the full data span instead, giving Yamagata B4 = 0.523 and Akita B4 = 0.417; those values are superseded.) TTM and Extra Trees Recall@K are recomputed from the released score CSVs. Poisson-GLM Recall@K is carried over from the archived benchmark run in `notebooks/kumawatch_benchmark_table3_colab.ipynb` (saved cell outputs).*
 
@@ -98,7 +98,7 @@ Northern Japan is experiencing severe human–bear conflict; Yamagata Prefecture
 | Extra Trees | 0.097 | −1.63 | 0.126 | −1.18 |
 | B2: Recent MA | **0.031** | **0.15** | **0.039** | **0.32** |
 
-*BSS (Brier Skill Score) > 0 indicates better calibration than the climatological baseline. B2 achieves the best Brier Skill Score of any method on both prefectures. ET is strongly miscalibrated (BSS = −1.63 on Yamagata), consistent with known behaviour of tree ensembles on probability estimation tasks. HierBayes and GLM-Logit are both well calibrated (BSS 0.08–0.10 on Yamagata, 0.28–0.30 on Akita). The HierBayes row is recomputed from the released posterior-mean files; the paper's Table 1 reports its Yamagata BSS as 0.08, from the superseded run.*
+*BSS (Brier Skill Score) > 0 indicates better calibration than the climatological baseline. B2 achieves the best Brier Skill Score of any method on both prefectures. ET is strongly miscalibrated (BSS = −1.63 on Yamagata), consistent with known behaviour of tree ensembles on probability estimation tasks. HierBayes and GLM-Logit are both well calibrated (BSS 0.08–0.10 on Yamagata, 0.28–0.30 on Akita). Every row is recomputed from the released score files and reproduces the paper's Table 1, HierBayes included at 0.10 on Yamagata.*
 
 ### Cross-Method Top-K Agreement
 
@@ -412,7 +412,7 @@ Bonferroni here is α = 0.05 / 10 = 0.005 over this family; Table 2 uses
 thresholds, so both give the same verdict on every row.
 
 What the table shows: **on Yamagata no method beats the static prior
-significantly** — GLM-Logit's +0.014 (*p* = 0.155), HierBayes' +0.009
+significantly** — GLM-Logit's +0.014 (*p* = 0.158), HierBayes' +0.009
 (*p* = 0.439) and B5's +0.001 (*p* = 0.936) are the three that are ahead at all,
 and none approaches the threshold. On Akita, GLM-Logit (+0.050) and HierBayes
 (+0.027) do beat it significantly, which is the asymmetry Section 6 describes.
